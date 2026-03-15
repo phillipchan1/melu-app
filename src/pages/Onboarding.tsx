@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Message } from '../store';
 import { useStore } from '../store';
 import { Send } from 'lucide-react';
 import './Onboarding.css';
 
 const Onboarding = () => {
+  const navigate = useNavigate();
   const { messages, addMessage, setOnboarded } = useStore();
   const [input, setInput] = useState('');
   const [step, setStep] = useState(2); // Currently on step 2 of 4
@@ -45,7 +47,10 @@ const Onboarding = () => {
           content: "Perfect. You're all set! I'm learning your family. Your first plan will be ready Sunday.",
         };
         // Complete onboarding
-        setTimeout(() => setOnboarded(true), 1000);
+        setTimeout(() => {
+          setOnboarded(true);
+          navigate('/');
+        }, 1500);
         setStep(4);
       } else {
         meluResponse = {
@@ -77,7 +82,10 @@ const Onboarding = () => {
         content: "Perfect. You're all set! I'm learning your family. Your first plan will be ready Sunday.",
       };
       addMessage(meluResponse);
-      setTimeout(() => setOnboarded(true), 1000);
+      setTimeout(() => {
+        setOnboarded(true);
+        navigate('/');
+      }, 1500);
       setStep(4);
     }
 
