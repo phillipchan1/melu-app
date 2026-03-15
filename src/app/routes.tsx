@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import { SplashScreen } from "./screens/SplashScreen";
 import { ProfileSetup } from "./screens/ProfileSetup";
+import { OnboardingTransition } from "./screens/OnboardingTransition";
 import { WeeklyCheckIn } from "./screens/WeeklyCheckIn";
 import { HomeDashboard } from "./screens/HomeDashboard";
 import { ComingUp } from "./screens/ComingUp";
@@ -17,6 +18,10 @@ export const router = createBrowserRouter([
   {
     path: "/onboarding",
     Component: ProfileSetup,
+  },
+  {
+    path: "/onboarding-transition",
+    Component: OnboardingTransition,
   },
   {
     path: "/weekly-checkin",

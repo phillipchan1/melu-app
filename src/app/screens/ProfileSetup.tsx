@@ -5,8 +5,8 @@ export function ProfileSetup() {
   const navigate = useNavigate();
 
   const handleChipClick = () => {
-    // Navigate to home after completing onboarding
-    setTimeout(() => navigate("/home"), 500);
+    // Navigate to transition screen after completing onboarding
+    setTimeout(() => navigate("/onboarding-transition"), 500);
   };
 
   return (
