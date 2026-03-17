@@ -1,0 +1,42 @@
+---
+description: World-class architect & engineer mindset for every code change
+alwaysApply: true
+---
+
+# Architecture Excellence
+
+Apply **top-tier architect and engineer thinking** to every code change. Prioritize quality and long-term scalability over quick fixes.
+
+## Core Principles
+
+1. **Design for change** — Code will evolve. Structure so future requirements don't require rewrites. Prefer composition over inheritance, small focused modules over monoliths.
+
+2. **Explicit over implicit** — Clear naming, explicit types, obvious data flow. Avoid magic, hidden state, or clever tricks that obscure intent.
+
+3. **Single responsibility** — Each module/component/hook does one thing well. When something grows beyond that, extract.
+
+4. **Testability by design** — Pure functions, dependency injection, minimal side effects. If it's hard to test, the design is wrong.
+
+5. **Fail fast, fail clearly** — Validate inputs at boundaries. Surface errors with context. Never swallow exceptions silently.
+
+## Before Every Change
+
+- **Impact**: What breaks if this changes? What depends on it?
+- **Scale**: Will this work at 10x, 100x? (users, data, requests)
+- **Debt**: Am I adding tech debt or paying it down?
+- **Abstraction level**: Am I abstracting too early (YAGNI) or too late (duplication)?
+
+## Code Quality Bar
+
+- **Types**: Strict TypeScript. No `any`. Prefer `unknown` over `any` when type is truly dynamic.
+- **Naming**: Verbs for functions, nouns for data. `getUserPreferences` not `prefs`.
+- **Size**: Functions under ~30 lines. Components under ~150. Split when exceeded.
+- **Imports**: Minimal, explicit. No barrel files that re-export everything.
+
+## Red Flags to Avoid
+
+- Copy-paste instead of abstraction
+- Props drilling 3+ levels (use composition or context)
+- Inline styles/objects that recreate on every render
+- Async without loading/error states
+- New dependencies without evaluating bundle impact

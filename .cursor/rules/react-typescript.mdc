@@ -1,0 +1,53 @@
+---
+description: React and TypeScript patterns for Melu app
+globs: "**/*.ts,**/*.tsx"
+alwaysApply: false
+---
+
+# React & TypeScript Patterns
+
+## Component Structure
+
+- **Functional components only** — Use hooks, no class components.
+- **Colocate** — Keep components, hooks, and types close. Extract to shared only when reused 2+ times.
+- **Composition over configuration** — Prefer `<Card><CardHeader />...</Card>` over `<Card header="..." />`.
+
+## Hooks
+
+- Extract reusable logic to custom hooks (`use*`). Keep components thin.
+- Dependencies: exhaustive deps. If a value is used, it's in the array.
+- Avoid hooks in loops/conditionals — rules of hooks are non-negotiable.
+
+## State & Data Flow
+
+- **Lift state** only as high as needed. Prefer local state.
+- **Context** for cross-cutting concerns (theme, auth). Not for frequently changing data.
+- **Props** — Keep interfaces minimal. Use `children` and composition for flexibility.
+
+## TypeScript
+
+```typescript
+// ✅ GOOD — Explicit, reusable
+interface WeeklyPlanProps {
+  meals: Meal[];
+  onMealSelect?: (meal: Meal) => void;
+}
+
+// ❌ BAD — Inline, unclear
+const Plan = ({ meals, onMealSelect }: { meals: any[]; onMealSelect?: Function }) => {}
+```
+
+- Define interfaces for component props. Export when shared.
+- Use `type` for unions/intersections, `interface` for object shapes.
+- Prefer `const` assertions for literal types.
+
+## Performance
+
+- `React.memo` only when profiling shows need. Don't premature-optimize.
+- Callbacks: `useCallback` when passing to memoized children. `useMemo` for expensive computations.
+- Lazy load routes: `React.lazy` + `Suspense` for code splitting.
+
+## Radix UI (this project)
+
+- Use Radix primitives from `src/app/components/ui/`. Compose, don't replace.
+- Style with Tailwind. Use `cn()` from utils for conditional classes.
