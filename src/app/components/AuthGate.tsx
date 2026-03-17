@@ -1,6 +1,31 @@
 import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router';
 import type { Session } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+import { supabase, supabaseConfig } from '../lib/supabase';
+
+function SetupScreen() {
+  return (
+    <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center px-5">
+      <div className="w-full max-w-[375px] bg-white rounded-[28px] p-8 shadow-sm">
+        <div className="text-[22px] text-[#7C9E7A] mb-6" style={{ fontWeight: 600 }}>
+          melu
+        </div>
+        <h1 className="text-[28px] text-[#1C1917] mb-4" style={{ fontWeight: 600, lineHeight: 1.2 }}>
+          Supabase not configured
+        </h1>
+        <p className="text-[15px] text-[#78716C] mb-6" style={{ fontWeight: 400, lineHeight: 1.6 }}>
+          Copy <code className="bg-[#F0EFED] px-1 rounded">.env.example</code> to{' '}
+          <code className="bg-[#F0EFED] px-1 rounded">.env</code> and set{' '}
+          <code className="bg-[#F0EFED] px-1 rounded">VITE_SUPABASE_URL</code> and{' '}
+          <code className="bg-[#F0EFED] px-1 rounded">VITE_SUPABASE_ANON_KEY</code>.
+        </p>
+        <p className="text-[13px] text-[#78716C]" style={{ fontWeight: 400 }}>
+          Restart the dev server after creating <code className="bg-[#F0EFED] px-1 rounded">.env</code>.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 function LoadingScreen() {
   return (
@@ -61,8 +86,23 @@ function SignInScreen() {
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // After OAuth redirect, clear auth hash and go to splash
+  useEffect(() => {
+    if (!session?.user) return;
+    const hasAuthCallback = /access_token|refresh_token/.test(
+      location.hash + location.search
+    );
+    if (hasAuthCallback) {
+      window.history.replaceState(null, '', window.location.pathname || '/');
+      navigate('/', { replace: true });
+    }
+  }, [session, location.hash, location.search, navigate]);
 
   useEffect(() => {
+    if (!supabaseConfig.isConfigured || !supabase) return;
     const loadSession = async () => {
       const { data, error } = await supabase.auth.getSession();
       if (error) {
@@ -84,6 +124,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  if (!supabaseConfig.isConfigured) return <SetupScreen />;
   if (loading) return <LoadingScreen />;
   if (!session?.user) return <SignInScreen />;
 
