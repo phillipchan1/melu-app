@@ -14,7 +14,7 @@ export function GroceryComingSoon() {
         </p>
         <button
           onClick={() => navigate("/home")}
-          className="text-[16px] text-[#7C9E7A]"
+          className="text-[16px] text-[#7C9E7A] underline underline-offset-2 hover:no-underline"
           style={{ fontWeight: 400 }}
         >
           Back to this week

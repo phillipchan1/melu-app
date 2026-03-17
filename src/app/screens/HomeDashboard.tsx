@@ -43,7 +43,7 @@ export function HomeDashboard() {
         <div className="text-[11px] text-[#78716C] tracking-[0.08em] mb-2" style={{ fontWeight: 600 }}>
           THIS WEEK
         </div>
-        <div className="bg-white rounded-2xl p-[18px] shadow-sm">
+        <div className="bg-white rounded-2xl p-[18px] shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
           {[
             { day: "MON", meal: "Sheet Pan Lemon Chicken" },
             { day: "TUE", meal: "Beef Tacos" },

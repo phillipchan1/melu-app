@@ -19,10 +19,7 @@ export const router = createBrowserRouter([
       </AuthGate>
     ),
     children: [
-      {
-        index: true,
-        Component: SplashScreen,
-      },
+      { index: true, Component: SplashScreen },
       {
         path: "onboarding",
         Component: ProfileSetup,

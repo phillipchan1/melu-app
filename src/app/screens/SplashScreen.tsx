@@ -18,7 +18,9 @@ export function SplashScreen() {
         >
           Dinner, planned.
           <br />
-          Every week. In 60 seconds.
+          Every week. In 60
+          <br />
+          seconds.
         </h1>
 
         {/* Body text */}

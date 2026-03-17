@@ -65,10 +65,10 @@ function SignInScreen() {
           melu
         </div>
         <h1 className="text-[28px] text-[#1C1917] mb-4" style={{ fontWeight: 600, lineHeight: 1.2 }}>
-          Dinner plans, gated to your Google account.
+          Dinner this week? <i>Done.</i>
         </h1>
         <p className="text-[15px] text-[#78716C] mb-8" style={{ fontWeight: 400, lineHeight: 1.6 }}>
-          Sign in with Google to access Melu. That keeps each family&apos;s plan, profile,
+          Melu keeps each family&apos;s plan, profile,
           and future meal data tied to the right person.
         </p>
         <button

@@ -75,7 +75,7 @@ export function WeeklyCheckIn() {
           <input
             type="text"
             placeholder="Type a message..."
-            className="flex-1 bg-white rounded-full px-4 py-3 text-[15px] text-[#1C1917] outline-none border border-[#E8E5E0]"
+            className="flex-1 bg-[#F0EFED] rounded-full px-4 py-3 text-[15px] text-[#1C1917] placeholder:text-[#78716C] outline-none border border-[#E8E5E0]"
             style={{ fontWeight: 400 }}
           />
           <button className="w-12 h-12 bg-[#7C9E7A] rounded-full flex items-center justify-center">

@@ -9,7 +9,7 @@ export function BottomNav({ activeTab }: BottomNavProps) {
   const navigate = useNavigate();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E8E5E0] h-[60px] flex items-center justify-around max-w-[375px] mx-auto">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E8E5E0] shadow-[0_-1px_4px_rgba(0,0,0,0.04)] h-[60px] flex items-center justify-around max-w-[375px] mx-auto">
       <button
         onClick={() => navigate("/home")}
         className="flex flex-col items-center gap-1 py-2"

@@ -7,7 +7,7 @@ export function ProfilePreferences() {
   const preferences = [
     {
       label: "Family",
-      value: "4 people · Kids ages 7 and 10",
+      value: "4 people — Kids ages 7 and 10",
     },
     {
       label: "Avoid",
@@ -54,7 +54,7 @@ export function ProfilePreferences() {
         {preferences.map((pref, index) => (
           <button
             key={index}
-            className="w-full bg-white rounded-2xl p-[18px] shadow-sm flex items-center justify-between hover:bg-[#FAF8F5] transition-colors"
+            className="w-full bg-white rounded-2xl p-[18px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] flex items-center justify-between hover:bg-[#FAF8F5] transition-colors"
           >
             <div className="flex-1 text-left">
               <div className="text-[15px] text-[#1C1917] mb-1" style={{ fontWeight: 600 }}>
