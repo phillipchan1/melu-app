@@ -406,12 +406,12 @@ export function ProfileSetup() {
           <div className="space-y-8">
             <div>
               <p className="text-[15px] text-[#1C1917] mb-3">
-                On a chaos night — soccer, long day, everyone&apos;s tired — what does dinner look like
-                right now?
+                On a chaos night — soccer, long day, everyone&apos;s tired — what dish do you actually
+                make or grab?
               </p>
               <input
                 type="text"
-                placeholder="Short answer..."
+                placeholder="e.g. cereal, takeout pizza, scrambled eggs..."
                 value={answers.q11}
                 onChange={(e) => update("q11", e.target.value)}
                 className="w-full bg-[#F0EFED] rounded-2xl px-4 py-3 text-[15px] placeholder:text-[#78716C] outline-none border border-[#E8E5E0]"
