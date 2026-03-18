@@ -119,8 +119,8 @@ function MultiSelect({
           onClick={() => toggle(o.value)}
           className={`rounded-full px-4 py-2.5 text-[15px] transition-colors ${
             value.includes(o.value)
-              ? "bg-[#7C9E7A] text-white"
-              : "bg-[#F0EFED] text-[#1C1917] hover:bg-[#E8E5E0]"
+              ? "bg-primary text-primary-foreground"
+              : "bg-secondary text-foreground hover:bg-border"
           }`}
         >
           {o.label}
@@ -147,7 +147,7 @@ function SingleSelect({
           type="button"
           onClick={() => onChange(o.value)}
           className={`rounded-full px-5 py-3 text-left text-[15px] transition-colors ${
-            value === o.value ? "bg-[#7C9E7A] text-white" : "bg-[#F0EFED] text-[#1C1917] hover:bg-[#E8E5E0]"
+            value === o.value ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground hover:bg-border"
           }`}
         >
           {o.label}
@@ -172,13 +172,13 @@ function Stepper({
 }>) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-[15px] text-[#1C1917]">{label}</span>
+      <span className="text-[15px] text-foreground">{label}</span>
       <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={() => onChange(Math.max(min, value - 1))}
           disabled={value <= min}
-          className="w-10 h-10 rounded-full bg-[#F0EFED] flex items-center justify-center disabled:opacity-40"
+          className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center disabled:opacity-40"
         >
           −
         </button>
@@ -187,7 +187,7 @@ function Stepper({
           type="button"
           onClick={() => onChange(Math.min(max, value + 1))}
           disabled={value >= max}
-          className="w-10 h-10 rounded-full bg-[#F0EFED] flex items-center justify-center disabled:opacity-40"
+          className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center disabled:opacity-40"
         >
           +
         </button>
@@ -261,26 +261,26 @@ export function ProfileSetup() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] flex flex-col max-w-[375px] mx-auto">
-      <div className="pt-12 pb-6 px-5 text-center">
-        <div className="text-[22px] text-[#7C9E7A]" style={{ fontWeight: 600 }}>
+    <div className="min-h-screen bg-background flex flex-col max-w-[375px] mx-auto">
+      <div className="pt-12 pb-6 px-page text-center">
+        <div className="text-[22px] text-primary font-semibold">
           melu
         </div>
-        <div className="text-[13px] text-[#78716C] mt-1">
+        <div className="text-[13px] text-muted-foreground mt-1">
           Step {section.step} of 4
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 pb-32">
-        <h2 className="text-[17px] text-[#1C1917] mb-6" style={{ fontWeight: 600 }}>
+      <div className="flex-1 overflow-y-auto px-page pb-32">
+        <h2 className="text-[17px] text-foreground mb-6 font-semibold">
           {section.title}
         </h2>
 
         {section.id === "kitchen" && (
           <div className="space-y-8">
             <div>
-              <p className="text-[15px] text-[#1C1917] mb-3">Who are you feeding?</p>
-              <div className="space-y-4 bg-white rounded-2xl p-5 shadow-sm">
+              <p className="text-[15px] text-foreground mb-3">Who are you feeding?</p>
+              <div className="space-y-4 bg-card rounded-2xl p-5 shadow-sm">
                 <Stepper
                   label="Adults"
                   value={answers.q1.adults}
@@ -297,7 +297,7 @@ export function ProfileSetup() {
                 />
                 {answers.q1.kids > 0 && (
                   <div>
-                    <p className="text-[14px] text-[#78716C] mb-2">Kid ages (optional)</p>
+                    <p className="text-[14px] text-muted-foreground mb-2">Kid ages (optional)</p>
                     <MultiSelect
                       options={KID_AGE_OPTIONS.map((a) => ({ value: a, label: a }))}
                       value={answers.q1.kidAges || []}
@@ -309,36 +309,36 @@ export function ProfileSetup() {
             </div>
 
             <div>
-              <p className="text-[15px] text-[#1C1917] mb-3">Any allergies or intolerances?</p>
+              <p className="text-[15px] text-foreground mb-3">Any allergies or intolerances?</p>
               <MultiSelect options={Q2_OPTIONS} value={answers.q2} onChange={(v) => update("q2", v)} />
               <input
                 type="text"
                 placeholder="Other (e.g. sesame)"
                 value={q2Other}
                 onChange={(e) => setQ2Other(e.target.value)}
-                className="mt-3 w-full bg-[#F0EFED] rounded-full px-4 py-3 text-[15px] placeholder:text-[#78716C] outline-none border border-[#E8E5E0]"
+                className="mt-3 w-full bg-secondary rounded-full px-4 py-3 text-[15px] placeholder:text-muted-foreground outline-none border border-border"
               />
             </div>
 
             <div>
-              <p className="text-[15px] text-[#1C1917] mb-3">Any dietary restrictions?</p>
+              <p className="text-[15px] text-foreground mb-3">Any dietary restrictions?</p>
               <MultiSelect options={Q3_OPTIONS} value={answers.q3} onChange={(v) => update("q3", v)} />
             </div>
 
             <div>
-              <p className="text-[15px] text-[#1C1917] mb-3">
+              <p className="text-[15px] text-foreground mb-3">
                 How much does nutrition factor into what you cook?
               </p>
               <SingleSelect options={Q3B_OPTIONS} value={answers.q3b} onChange={(v) => update("q3b", v)} />
             </div>
 
             <div>
-              <p className="text-[15px] text-[#1C1917] mb-3">What&apos;s in your kitchen?</p>
+              <p className="text-[15px] text-foreground mb-3">What&apos;s in your kitchen?</p>
               <MultiSelect options={Q4_OPTIONS} value={answers.q4} onChange={(v) => update("q4", v)} />
             </div>
 
             <div>
-              <p className="text-[15px] text-[#1C1917] mb-3">
+              <p className="text-[15px] text-foreground mb-3">
                 On a typical weeknight, how much time do you actually have to cook?
               </p>
               <SingleSelect options={Q5_OPTIONS} value={answers.q5} onChange={(v) => update("q5", v)} />
@@ -349,7 +349,7 @@ export function ProfileSetup() {
         {section.id === "palate" && (
           <div className="space-y-8">
             <div>
-              <p className="text-[15px] text-[#1C1917] mb-3">
+              <p className="text-[15px] text-foreground mb-3">
                 Name 3–5 dinners your family already loves.
               </p>
               <input
@@ -357,12 +357,12 @@ export function ProfileSetup() {
                 placeholder="Tacos, spaghetti, grilled chicken..."
                 value={answers.q6}
                 onChange={(e) => update("q6", e.target.value)}
-                className="w-full bg-[#F0EFED] rounded-2xl px-4 py-3 text-[15px] placeholder:text-[#78716C] outline-none border border-[#E8E5E0]"
+                className="w-full bg-secondary rounded-2xl px-4 py-3 text-[15px] placeholder:text-muted-foreground outline-none border border-border"
               />
             </div>
 
             <div>
-              <p className="text-[15px] text-[#1C1917] mb-3">
+              <p className="text-[15px] text-foreground mb-3">
                 What&apos;s one thing you&apos;ve always wanted to cook but never have?
               </p>
               <input
@@ -370,24 +370,24 @@ export function ProfileSetup() {
                 placeholder="Thai curry, homemade ramen, beef Wellington..."
                 value={answers.q7}
                 onChange={(e) => update("q7", e.target.value)}
-                className="w-full bg-[#F0EFED] rounded-2xl px-4 py-3 text-[15px] placeholder:text-[#78716C] outline-none border border-[#E8E5E0]"
+                className="w-full bg-secondary rounded-2xl px-4 py-3 text-[15px] placeholder:text-muted-foreground outline-none border border-border"
               />
             </div>
 
             <div>
-              <p className="text-[15px] text-[#1C1917] mb-3">Pick the flavors that feel like home.</p>
+              <p className="text-[15px] text-foreground mb-3">Pick the flavors that feel like home.</p>
               <MultiSelect options={Q8_OPTIONS} value={answers.q8} onChange={(v) => update("q8", v)} />
             </div>
 
             <div>
-              <p className="text-[15px] text-[#1C1917] mb-3">
+              <p className="text-[15px] text-foreground mb-3">
                 How adventurous do you want your plan to be?
               </p>
               <SingleSelect options={Q9_OPTIONS} value={answers.q9} onChange={(v) => update("q9", v)} />
             </div>
 
             <div>
-              <p className="text-[15px] text-[#1C1917] mb-3">
+              <p className="text-[15px] text-foreground mb-3">
                 Anything your family absolutely will not eat?
               </p>
               <input
@@ -395,7 +395,7 @@ export function ProfileSetup() {
                 placeholder="Mushrooms, fish, anything too spicy..."
                 value={answers.q10}
                 onChange={(e) => update("q10", e.target.value)}
-                className="w-full bg-[#F0EFED] rounded-2xl px-4 py-3 text-[15px] placeholder:text-[#78716C] outline-none border border-[#E8E5E0]"
+                className="w-full bg-secondary rounded-2xl px-4 py-3 text-[15px] placeholder:text-muted-foreground outline-none border border-border"
               />
             </div>
 
@@ -405,7 +405,7 @@ export function ProfileSetup() {
         {section.id === "reality" && (
           <div className="space-y-8">
             <div>
-              <p className="text-[15px] text-[#1C1917] mb-3">
+              <p className="text-[15px] text-foreground mb-3">
                 On a chaos night — soccer, long day, everyone&apos;s tired — what dish do you actually
                 make or grab?
               </p>
@@ -414,17 +414,17 @@ export function ProfileSetup() {
                 placeholder="e.g. cereal, takeout pizza, scrambled eggs..."
                 value={answers.q11}
                 onChange={(e) => update("q11", e.target.value)}
-                className="w-full bg-[#F0EFED] rounded-2xl px-4 py-3 text-[15px] placeholder:text-[#78716C] outline-none border border-[#E8E5E0]"
+                className="w-full bg-secondary rounded-2xl px-4 py-3 text-[15px] placeholder:text-muted-foreground outline-none border border-border"
               />
             </div>
 
             <div>
-              <p className="text-[15px] text-[#1C1917] mb-3">What matters more to you right now?</p>
+              <p className="text-[15px] text-foreground mb-3">What matters more to you right now?</p>
               <SingleSelect options={Q12_OPTIONS} value={answers.q12} onChange={(v) => update("q12", v)} />
             </div>
 
             <div>
-              <p className="text-[15px] text-[#1C1917] mb-3">Are any nights off-limits? (optional)</p>
+              <p className="text-[15px] text-foreground mb-3">Are any nights off-limits? (optional)</p>
               <MultiSelect
                 options={DAYS.map((d) => ({ value: d.toLowerCase(), label: d }))}
                 value={answers.q13?.days || []}
@@ -435,7 +435,7 @@ export function ProfileSetup() {
                 placeholder="e.g. Friday — pizza night"
                 value={answers.q13?.note || ""}
                 onChange={(e) => update("q13", { ...answers.q13!, note: e.target.value })}
-                className="mt-3 w-full bg-[#F0EFED] rounded-full px-4 py-3 text-[15px] placeholder:text-[#78716C] outline-none border border-[#E8E5E0]"
+                className="mt-3 w-full bg-secondary rounded-full px-4 py-3 text-[15px] placeholder:text-muted-foreground outline-none border border-border"
               />
             </div>
           </div>
@@ -446,12 +446,12 @@ export function ProfileSetup() {
         )}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-[#FAF8F5] border-t border-[#E8E5E0] px-5 py-4 max-w-[375px] mx-auto flex items-center justify-between">
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border px-page py-4 max-w-[375px] mx-auto flex items-center justify-between">
         <button
           type="button"
           onClick={() => setSectionIndex((i) => Math.max(0, i - 1))}
           disabled={sectionIndex === 0}
-          className="flex items-center gap-1 text-[#78716C] disabled:opacity-40"
+          className="flex items-center gap-1 text-muted-foreground disabled:opacity-40"
         >
           <ChevronLeft className="w-5 h-5" />
           Back
@@ -460,7 +460,7 @@ export function ProfileSetup() {
           type="button"
           onClick={handleNext}
           disabled={!canProceed() || isSubmitting}
-          className="flex items-center gap-1 bg-[#7C9E7A] text-white px-6 py-3 rounded-full disabled:opacity-40"
+          className="flex items-center gap-1 bg-primary text-primary-foreground px-6 py-3 rounded-full disabled:opacity-40"
         >
           {getNextButtonLabel()}
           <ChevronRight className="w-5 h-5" />

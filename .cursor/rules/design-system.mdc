@@ -1,0 +1,19 @@
+---
+description: Melu design system — tokens, primitives, prohibited patterns
+globs: "**/*.tsx,**/*.css"
+alwaysApply: false
+---
+
+# Melu Design System
+
+**Source of truth:** `docs/frontend-design-system.md`
+
+## Rules
+
+1. **Use design tokens** — Never hardcode hex colors or magic spacing. Use `bg-background`, `text-foreground`, `text-muted-foreground`, `bg-primary`, `text-primary`, `border-border`, `px-page`, `p-card`, `gap-section-gap`.
+
+2. **Use primitives** — Import from `src/app/components/design-system/`. Use `ScreenShell`, `TopBar`, `MeluCard`, `Button` (variants `melu` / `meluOutline`), `ChatBubble`, `ResponseChip`, `MealCard`, `WeekSummaryCard`, `ProfileRowCard` before building custom UI.
+
+3. **Prohibited patterns** — No swap button (V1 is approve-only). No calendar sync references. Bottom nav only on HomeDashboard, ComingUp, WeeklyPlanView.
+
+4. **Before creating new UI** — Check if a primitive exists. If a pattern repeats, extract to a primitive.

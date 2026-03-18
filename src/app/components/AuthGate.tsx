@@ -5,22 +5,22 @@ import { supabase, supabaseConfig } from '../lib/supabase';
 
 function SetupScreen() {
   return (
-    <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center px-5">
-      <div className="w-full max-w-[375px] bg-white rounded-[28px] p-8 shadow-sm">
-        <div className="text-[22px] text-[#7C9E7A] mb-6" style={{ fontWeight: 600 }}>
+    <div className="min-h-screen bg-background flex items-center justify-center px-page">
+      <div className="w-full max-w-[375px] bg-card rounded-[28px] p-8 shadow-sm">
+        <div className="text-[22px] text-primary font-semibold mb-6">
           melu
         </div>
-        <h1 className="text-[28px] text-[#1C1917] mb-4" style={{ fontWeight: 600, lineHeight: 1.2 }}>
+        <h1 className="text-[28px] text-foreground mb-4 font-semibold leading-[1.2]">
           Supabase not configured
         </h1>
-        <p className="text-[15px] text-[#78716C] mb-6" style={{ fontWeight: 400, lineHeight: 1.6 }}>
-          Copy <code className="bg-[#F0EFED] px-1 rounded">.env.example</code> to{' '}
-          <code className="bg-[#F0EFED] px-1 rounded">.env</code> and set{' '}
-          <code className="bg-[#F0EFED] px-1 rounded">VITE_SUPABASE_URL</code> and{' '}
-          <code className="bg-[#F0EFED] px-1 rounded">VITE_SUPABASE_ANON_KEY</code>.
+        <p className="text-[15px] text-muted-foreground mb-6 font-normal leading-[1.6]">
+          Copy <code className="bg-secondary px-1 rounded">.env.example</code> to{' '}
+          <code className="bg-secondary px-1 rounded">.env</code> and set{' '}
+          <code className="bg-secondary px-1 rounded">VITE_SUPABASE_URL</code> and{' '}
+          <code className="bg-secondary px-1 rounded">VITE_SUPABASE_ANON_KEY</code>.
         </p>
-        <p className="text-[13px] text-[#78716C]" style={{ fontWeight: 400 }}>
-          Restart the dev server after creating <code className="bg-[#F0EFED] px-1 rounded">.env</code>.
+        <p className="text-[13px] text-muted-foreground font-normal">
+          Restart the dev server after creating <code className="bg-secondary px-1 rounded">.env</code>.
         </p>
       </div>
     </div>
@@ -29,13 +29,13 @@ function SetupScreen() {
 
 function LoadingScreen() {
   return (
-    <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center px-5">
-      <div className="w-full max-w-[375px] bg-white rounded-3xl p-8 shadow-sm flex flex-col items-center text-center gap-4">
-        <div className="w-8 h-8 rounded-full border-4 border-[#E8E5E0] border-t-[#7C9E7A] animate-spin" />
-        <div className="text-[22px] text-[#7C9E7A]" style={{ fontWeight: 600 }}>
+    <div className="min-h-screen bg-background flex items-center justify-center px-page">
+      <div className="w-full max-w-[375px] bg-card rounded-3xl p-8 shadow-sm flex flex-col items-center text-center gap-4">
+        <div className="w-8 h-8 rounded-full border-4 border-border border-t-primary animate-spin" />
+        <div className="text-[22px] text-primary font-semibold">
           melu
         </div>
-        <p className="text-[15px] text-[#78716C]" style={{ fontWeight: 400 }}>
+        <p className="text-[15px] text-muted-foreground font-normal">
           Checking your session…
         </p>
       </div>
@@ -59,22 +59,21 @@ function SignInScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center px-5">
-      <div className="w-full max-w-[375px] bg-white rounded-[28px] p-8 shadow-sm">
-        <div className="text-[22px] text-[#7C9E7A] mb-6" style={{ fontWeight: 600 }}>
+    <div className="min-h-screen bg-background flex items-center justify-center px-page">
+      <div className="w-full max-w-[375px] bg-card rounded-[28px] p-8 shadow-sm">
+        <div className="text-[22px] text-primary font-semibold mb-6">
           melu
         </div>
-        <h1 className="text-[28px] text-[#1C1917] mb-4" style={{ fontWeight: 600, lineHeight: 1.2 }}>
+        <h1 className="text-[28px] text-foreground mb-4 font-semibold leading-[1.2]">
           Dinner this week? <i>Done.</i>
         </h1>
-        <p className="text-[15px] text-[#78716C] mb-8" style={{ fontWeight: 400, lineHeight: 1.6 }}>
+        <p className="text-[15px] text-muted-foreground mb-8 font-normal leading-[1.6]">
           Melu keeps each family&apos;s plan, profile,
           and future meal data tied to the right person.
         </p>
         <button
           onClick={handleGoogleSignIn}
-          className="w-full h-[52px] bg-[#7C9E7A] rounded-full text-white text-[17px]"
-          style={{ fontWeight: 600 }}
+          className="w-full h-[52px] bg-primary rounded-full text-primary-foreground text-[17px] font-semibold"
         >
           Continue with Google
         </button>
@@ -130,20 +129,19 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   return (
     <div>
-      <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-[#E8E5E0]">
-        <div className="max-w-[375px] mx-auto px-5 py-3 flex items-center justify-between gap-4">
+      <div className="sticky top-0 z-50 bg-card/90 backdrop-blur-sm border-b border-border">
+        <div className="max-w-[375px] mx-auto px-page py-3 flex items-center justify-between gap-4">
           <div className="min-w-0">
-            <div className="text-[13px] text-[#1C1917] truncate" style={{ fontWeight: 600 }}>
+            <div className="text-[13px] text-foreground truncate font-semibold">
               {session.user.user_metadata?.full_name ?? session.user.email}
             </div>
-            <div className="text-[12px] text-[#78716C] truncate" style={{ fontWeight: 400 }}>
+            <div className="text-[12px] text-muted-foreground truncate font-normal">
               {session.user.email}
             </div>
           </div>
           <button
             onClick={() => void supabase.auth.signOut()}
-            className="text-[14px] text-[#7C9E7A]"
-            style={{ fontWeight: 600 }}
+            className="text-[14px] text-primary font-semibold"
           >
             Sign out
           </button>

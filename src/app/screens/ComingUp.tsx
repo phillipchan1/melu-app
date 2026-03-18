@@ -1,56 +1,57 @@
 import { useNavigate } from "react-router";
+
 import { BottomNav } from "../components/BottomNav";
+import { Button } from "../components/ui/button";
+import { ScreenShell, TopBar } from "../components/design-system";
 
 export function ComingUp() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] pb-[76px] max-w-[375px] mx-auto">
-      {/* Top Bar */}
-      <div className="flex items-center justify-between px-5 pt-12 pb-6">
-        <div className="text-[22px] text-[#7C9E7A]" style={{ fontWeight: 600 }}>
-          melu
-        </div>
-        <button onClick={() => navigate("/profile")}>
-          <div className="w-8 h-8 bg-[#7C9E7A] rounded-full flex items-center justify-center">
-            <span className="text-white text-[14px]" style={{ fontWeight: 600 }}>
-              P
-            </span>
-          </div>
-        </button>
-      </div>
+    <ScreenShell className="pb-[76px]">
+      <TopBar
+        right={
+          <button onClick={() => navigate("/profile")}>
+            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+              <span className="text-primary-foreground text-[14px] font-semibold">
+                P
+              </span>
+            </div>
+          </button>
+        }
+      />
 
-      {/* Main Content */}
-      <div className="flex items-center justify-center px-5 text-center" style={{ minHeight: "calc(100vh - 200px)" }}>
+      <div
+        className="flex items-center justify-center text-center min-h-[calc(100vh-200px)]"
+      >
         <div className="max-w-[280px]">
-          <div className="text-[11px] text-[#78716C] tracking-[0.08em] mb-3" style={{ fontWeight: 600 }}>
+          <div className="text-[11px] text-muted-foreground tracking-[0.08em] mb-3 font-semibold">
             NEXT WEEK
           </div>
-          
-          <h1 className="text-[20px] text-[#1C1917] mb-3" style={{ fontWeight: 600 }}>
+
+          <h1 className="text-[20px] text-foreground mb-3 font-semibold">
             Your next plan isn't ready yet.
           </h1>
-          
-          <p className="text-[15px] text-[#78716C] mb-8" style={{ fontWeight: 400, lineHeight: 1.5 }}>
+
+          <p className="text-[15px] text-muted-foreground mb-8 font-normal leading-[1.5]">
             Melu will build it Sunday morning. Want it now?
           </p>
-          
-          <button
+
+          <Button
+            variant="melu"
             onClick={() => navigate("/weekly-checkin")}
-            className="w-full h-[52px] bg-[#7C9E7A] rounded-full text-white text-[17px] mb-4"
-            style={{ fontWeight: 600 }}
+            className="mb-4 text-[17px] font-semibold"
           >
             Generate this week's plan now
-          </button>
-          
-          <p className="text-[13px] text-[#78716C]" style={{ fontWeight: 400 }}>
+          </Button>
+
+          <p className="text-[13px] text-muted-foreground font-normal">
             Melu will use your profile and this week's approvals.
           </p>
         </div>
       </div>
 
-      {/* Bottom Nav */}
       <BottomNav activeTab="coming-up" />
-    </div>
+    </ScreenShell>
   );
 }

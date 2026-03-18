@@ -19,6 +19,10 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        melu:
+          "w-full h-[52px] rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-base",
+        meluOutline:
+          "w-full h-[52px] rounded-full border-[1.5px] border-primary text-primary bg-transparent hover:bg-primary/5 text-base",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
@@ -27,6 +31,13 @@ const buttonVariants = cva(
         icon: "size-9 rounded-md",
       },
     },
+    compoundVariants: [
+      {
+        variant: ["melu", "meluOutline"],
+        size: "default",
+        class: "!h-[52px] min-h-[52px]",
+      },
+    ],
     defaultVariants: {
       variant: "default",
       size: "default",
