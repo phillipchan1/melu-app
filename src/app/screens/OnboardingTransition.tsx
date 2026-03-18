@@ -113,7 +113,7 @@ export function OnboardingTransition() {
         onClick={() => navigate("/weekly-checkin")}
         className="mt-auto"
       >
-        Continue
+        Build my first plan
       </Button>
     </ScreenShell>
   );

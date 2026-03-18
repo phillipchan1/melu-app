@@ -19,7 +19,7 @@ function ProfileRowCard({
       type="button"
       data-slot="profile-row-card"
       className={cn(
-        "w-full bg-card rounded-2xl p-card shadow-[0_1px_4px_rgba(0,0,0,0.06)]",
+        "w-full bg-card rounded-2xl p-card shadow-[0_1px_4px_rgba(0,0,0,0.06)] cursor-pointer",
         "flex items-center justify-between hover:bg-background transition-colors text-left",
         className,
       )}
