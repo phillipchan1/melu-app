@@ -14,28 +14,26 @@ export function SplashScreen() {
         </div>
 
         <h1 className="text-[24px] text-foreground mb-5 max-w-[280px] font-semibold leading-[1.3]">
-          Dinner, planned.
-          <br />
-          Every week. In 60
-          <br />
-          seconds.
+          Dinner, planned. 60 seconds.
         </h1>
 
         <p className="text-[16px] text-muted-foreground mb-10 max-w-[300px] font-normal leading-[1.6]">
-          To plan for you, Melu needs to know your family — who you're feeding, what you love, and what's off the table. It takes about 2 minutes. You'll never need to do it again.
+          Melu learns your family. Every week it gets smarter. You approve and
+          you&apos;re done.
+          <br />
+          <br />
+          First, we need to know your family — who you&apos;re feeding, what you
+          love, and what&apos;s off the table. About 2 minutes. You&apos;ll
+          never need to do it again.
         </p>
 
         <Button
           variant="melu"
           onClick={() => navigate("/onboarding")}
-          className="mb-4 text-[17px] font-semibold"
+          className="text-[17px] font-semibold"
         >
           Let's get started
         </Button>
-
-        <p className="text-[13px] text-muted-foreground font-normal">
-          No account needed to try it.
-        </p>
       </div>
     </ScreenShell>
   );

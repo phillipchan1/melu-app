@@ -65,11 +65,11 @@ function SignInScreen() {
           melu
         </div>
         <h1 className="text-[28px] text-foreground mb-4 font-semibold leading-[1.2]">
-          Dinner, planned. 60 seconds.
+          Meal planning for your family.
         </h1>
         <p className="text-[15px] text-muted-foreground mb-8 font-normal leading-[1.6]">
-          Melu learns your family. Every week it gets smarter. You approve and
-          you&apos;re done.
+          Sign in to get started. Your plan and preferences stay tied to your
+          account.
         </p>
         <button
           onClick={handleGoogleSignIn}
