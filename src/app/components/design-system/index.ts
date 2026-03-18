@@ -1,3 +1,4 @@
+export { ChefCard } from "./ChefCard";
 export { MeluCard } from "./MeluCard";
 export { ScreenShell } from "./ScreenShell";
 export { TopBar } from "./TopBar";
