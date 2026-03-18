@@ -1,12 +1,93 @@
 import { Send } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
+import { type ChatMessage, type ExtractedProfile, sendPersonalizationMessage } from "../lib/api";
+
+interface DisplayMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+}
 
 export function ProfileSetup() {
   const navigate = useNavigate();
+  const [messages, setMessages] = useState<DisplayMessage[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [extractedProfile, setExtractedProfile] = useState<ExtractedProfile>({
+    dietaryPreferences: [],
+    allergies: [],
+    dislikedIngredients: [],
+    preferredCuisines: [],
+    householdNotes: [],
+    goals: [],
+  });
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const hasInitialized = useRef(false);
 
-  const handleChipClick = () => {
-    // Navigate to transition screen after completing onboarding
-    setTimeout(() => navigate("/onboarding-transition"), 500);
+  const scrollToBottom = () => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  };
+
+  const callApi = async (conversationMessages: DisplayMessage[]) => {
+    setIsLoading(true);
+    setError(null);
+
+    const apiMessages: ChatMessage[] = conversationMessages.map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+    try {
+      const data = await sendPersonalizationMessage(apiMessages, extractedProfile);
+
+      const assistantMessage: DisplayMessage = { id: crypto.randomUUID(), role: "assistant", content: data.message };
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      if (data.extractedProfile) {
+        setExtractedProfile((prev) => mergeProfile(prev, data.extractedProfile));
+      }
+
+      if (data.done) {
+        setTimeout(() => navigate("/onboarding-transition"), 1000);
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+    callApi([]);
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
+
+  const handleSend = async () => {
+    const trimmed = input.trim();
+    if (!trimmed || isLoading) return;
+
+    const userMessage: DisplayMessage = { id: crypto.randomUUID(), role: "user", content: trimmed };
+    const updated = [...messages, userMessage];
+    setMessages(updated);
+    setInput("");
+    inputRef.current?.focus();
+
+    await callApi(updated);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
   return (
@@ -22,108 +103,87 @@ export function ProfileSetup() {
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 overflow-y-auto px-5 pb-24 space-y-3">
-        {/* AI Bubble - Intro */}
-        <div className="flex justify-start mb-3">
-          <div className="bg-[#F0EFED] rounded-[18px] px-4 py-3.5 max-w-[280px]">
-            <p className="text-[15px] text-[#1C1917]" style={{ fontWeight: 400 }}>
-              Hey — before I build your first plan, I want to learn your family. Who you're feeding, what's off the table, how much time you actually have. This takes about 2 minutes. You'll never need to do it again.
-            </p>
-          </div>
-        </div>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 pb-24 space-y-3">
+        {messages.map((msg) =>
+          msg.role === "assistant" ? (
+            <div key={msg.id} className="flex justify-start">
+              <div className="bg-[#F0EFED] rounded-[18px] px-4 py-3.5 max-w-[280px]">
+                <p className="text-[15px] text-[#1C1917]" style={{ fontWeight: 400 }}>
+                  {msg.content}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div key={msg.id} className="flex justify-end">
+              <div className="bg-[#7C9E7A] rounded-[18px] px-4 py-3.5 max-w-[280px]">
+                <p className="text-[15px] text-white" style={{ fontWeight: 400 }}>
+                  {msg.content}
+                </p>
+              </div>
+            </div>
+          )
+        )}
 
-        {/* AI Bubble 2 */}
-        <div className="flex justify-start">
-          <div className="bg-[#F0EFED] rounded-[18px] px-4 py-3.5 max-w-[280px]">
-            <p className="text-[15px] text-[#1C1917]" style={{ fontWeight: 400 }}>
-              How many people are you cooking for, and how old are the kids?
-            </p>
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="bg-[#F0EFED] rounded-[18px] px-4 py-3.5">
+              <div className="flex gap-1 items-center h-5">
+                <span className="w-2 h-2 bg-[#78716C] rounded-full animate-bounce [animation-delay:0ms]" />
+                <span className="w-2 h-2 bg-[#78716C] rounded-full animate-bounce [animation-delay:150ms]" />
+                <span className="w-2 h-2 bg-[#78716C] rounded-full animate-bounce [animation-delay:300ms]" />
+              </div>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* User Bubble 1 */}
-        <div className="flex justify-end">
-          <div className="bg-[#7C9E7A] rounded-[18px] px-4 py-3.5 max-w-[280px]">
-            <p className="text-[15px] text-white" style={{ fontWeight: 400 }}>
-              4 of us — 2 kids, ages 7 and 10.
-            </p>
+        {error && (
+          <div className="flex justify-center">
+            <p className="text-[13px] text-red-500 text-center">{error}</p>
           </div>
-        </div>
-
-        {/* AI Bubble 3 */}
-        <div className="flex justify-start">
-          <div className="bg-[#F0EFED] rounded-[18px] px-4 py-3.5 max-w-[280px]">
-            <p className="text-[15px] text-[#1C1917]" style={{ fontWeight: 400 }}>
-              Got it. Any foods that are completely off the table? Allergies,
-              strong dislikes, anything the kids refuse?
-            </p>
-          </div>
-        </div>
-
-        {/* User Bubble 2 */}
-        <div className="flex justify-end">
-          <div className="bg-[#7C9E7A] rounded-[18px] px-4 py-3.5 max-w-[280px]">
-            <p className="text-[15px] text-white" style={{ fontWeight: 400 }}>
-              No shellfish. My 7-year-old won't touch anything spicy.
-            </p>
-          </div>
-        </div>
-
-        {/* AI Bubble 4 */}
-        <div className="flex justify-start">
-          <div className="bg-[#F0EFED] rounded-[18px] px-4 py-3.5 max-w-[280px]">
-            <p className="text-[15px] text-[#1C1917]" style={{ fontWeight: 400 }}>
-              Noted — I'll keep everything mild and shellfish-free. On a typical
-              weeknight, how much time do you actually have to cook?
-            </p>
-          </div>
-        </div>
-
-        {/* Response Chips */}
-        <div className="flex justify-start">
-          <div className="flex flex-col gap-2 max-w-[280px]">
-            <button
-              onClick={handleChipClick}
-              className="bg-[#F0EFED] rounded-full px-5 py-3 text-left hover:bg-[#E8E5E0] transition-colors"
-            >
-              <span className="text-[15px] text-[#1C1917]" style={{ fontWeight: 400 }}>
-                Under 30 min — keep it quick
-              </span>
-            </button>
-            <button
-              onClick={handleChipClick}
-              className="bg-[#F0EFED] rounded-full px-5 py-3 text-left hover:bg-[#E8E5E0] transition-colors"
-            >
-              <span className="text-[15px] text-[#1C1917]" style={{ fontWeight: 400 }}>
-                30 - 45 min — I can manage
-              </span>
-            </button>
-            <button
-              onClick={handleChipClick}
-              className="bg-[#F0EFED] rounded-full px-5 py-3 text-left hover:bg-[#E8E5E0] transition-colors"
-            >
-              <span className="text-[15px] text-[#1C1917]" style={{ fontWeight: 400 }}>
-                45 min+ — I like to cook
-              </span>
-            </button>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Input Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-[#FAF8F5] border-t border-[#E8E5E0] px-5 py-3 max-w-[375px] mx-auto">
         <div className="flex items-center gap-2">
           <input
+            ref={inputRef}
             type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="Type a message..."
-            className="flex-1 bg-[#F0EFED] rounded-full px-4 py-3 text-[15px] text-[#1C1917] placeholder:text-[#78716C] outline-none border border-[#E8E5E0]"
+            disabled={isLoading}
+            className="flex-1 bg-[#F0EFED] rounded-full px-4 py-3 text-[15px] text-[#1C1917] placeholder:text-[#78716C] outline-none border border-[#E8E5E0] disabled:opacity-50"
             style={{ fontWeight: 400 }}
           />
-          <button className="w-12 h-12 bg-[#7C9E7A] rounded-full flex items-center justify-center">
+          <button
+            onClick={handleSend}
+            disabled={isLoading || !input.trim()}
+            className="w-12 h-12 bg-[#7C9E7A] rounded-full flex items-center justify-center disabled:opacity-40 transition-opacity"
+          >
             <Send className="w-5 h-5 text-white" />
           </button>
         </div>
       </div>
     </div>
   );
+}
+
+function mergeProfile(
+  prev: ExtractedProfile,
+  next: Partial<ExtractedProfile>,
+): ExtractedProfile {
+  return {
+    dietaryPreferences: dedupe([...prev.dietaryPreferences, ...(next.dietaryPreferences ?? [])]),
+    allergies: dedupe([...prev.allergies, ...(next.allergies ?? [])]),
+    dislikedIngredients: dedupe([...prev.dislikedIngredients, ...(next.dislikedIngredients ?? [])]),
+    preferredCuisines: dedupe([...prev.preferredCuisines, ...(next.preferredCuisines ?? [])]),
+    householdNotes: dedupe([...prev.householdNotes, ...(next.householdNotes ?? [])]),
+    goals: dedupe([...prev.goals, ...(next.goals ?? [])]),
+  };
+}
+
+function dedupe(arr: string[]): string[] {
+  return [...new Set(arr)];
 }
