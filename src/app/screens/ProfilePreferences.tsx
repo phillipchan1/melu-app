@@ -1,5 +1,5 @@
 import { ArrowLeft } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
 import { ChefCard, ScreenShell } from "../components/design-system";
@@ -15,30 +15,34 @@ import {
 } from "../components/ui/alert-dialog";
 import { buttonVariants } from "../components/ui/button";
 import type { ChefCard as ChefCardType } from "../lib/api";
-
-/** Placeholder chef card until profile fetch API exists. */
-const PLACEHOLDER_CHEF_CARD: ChefCardType = {
-  buildName: "The Intentional Explorer",
-  overallScore: 72,
-  tagline: "You balance comfort with discovery",
-  cuisineTags: ["American", "Mexican", "Italian", "Asian"],
-  comparisons: [
-    { name: "The Sunday Slow Roaster", desc: "Comfort-first, low spice", match: 68 },
-    { name: "The 20-Minute Closer", desc: "Speed and simplicity", match: 85 },
-    { name: "The Flavor Chaser", desc: "Bold, adventurous", match: 42 },
-  ],
-  dimensionScores: {
-    Comfort: 78,
-    Speed: 82,
-    Boldness: 45,
-    Discovery: 65,
-    Nourishment: 70,
-  },
-};
+import { fetchChefCard } from "../lib/api";
 
 export function ProfilePreferences() {
   const navigate = useNavigate();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [chefCard, setChefCard] = useState<ChefCardType | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const card = await fetchChefCard();
+        if (!cancelled) setChefCard(card);
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load profile");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <ScreenShell>
@@ -61,24 +65,53 @@ export function ProfilePreferences() {
         </p>
       </div>
 
-      <div className="flex justify-center">
-        <ChefCard card={PLACEHOLDER_CHEF_CARD} />
-      </div>
+      {loading && (
+        <div className="flex justify-center py-12">
+          <div className="w-8 h-8 rounded-full border-4 border-border border-t-primary animate-spin" />
+        </div>
+      )}
 
-      <div className="mb-6 text-center mt-6">
-        <p className="text-[13px] text-muted-foreground font-normal leading-[1.5]">
-          To update your profile, tap Reset below to retake the questionnaire.
-        </p>
-      </div>
+      {error && (
+        <p className="text-[14px] text-red-500 text-center py-4">{error}</p>
+      )}
 
-      <div className="text-center mt-8 pb-8">
-        <button
-          onClick={() => setShowResetConfirm(true)}
-          className="text-[14px] text-muted-foreground font-normal cursor-pointer"
-        >
-          Reset profile
-        </button>
-      </div>
+      {!loading && !error && chefCard && (
+        <>
+          <div className="flex justify-center">
+            <ChefCard card={chefCard} />
+          </div>
+          <div className="mb-6 text-center mt-6">
+            <p className="text-[13px] text-muted-foreground font-normal leading-[1.5]">
+              To update your profile, tap Reset below to retake the questionnaire.
+            </p>
+          </div>
+        </>
+      )}
+
+      {!loading && !error && !chefCard && (
+        <div className="text-center py-8">
+          <p className="text-[15px] text-muted-foreground mb-6">
+            Complete onboarding to see your Chef Card.
+          </p>
+          <button
+            onClick={() => navigate("/onboarding")}
+            className="text-[15px] text-primary font-semibold"
+          >
+            Get started
+          </button>
+        </div>
+      )}
+
+      {!loading && chefCard && (
+        <div className="text-center mt-8 pb-8">
+          <button
+            onClick={() => setShowResetConfirm(true)}
+            className="text-[14px] text-muted-foreground font-normal cursor-pointer"
+          >
+            Reset profile
+          </button>
+        </div>
+      )}
 
       <AlertDialog open={showResetConfirm} onOpenChange={setShowResetConfirm}>
         <AlertDialogContent>

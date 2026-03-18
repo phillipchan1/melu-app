@@ -1,4 +1,17 @@
+import { supabase } from './supabase';
+
 const BASE_URL = import.meta.env.VITE_MIDDLEWARE_URL ?? 'http://localhost:3000';
+
+async function getAuthHeaders(): Promise<HeadersInit> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (supabase) {
+    const { data } = await supabase.auth.getSession();
+    if (data.session?.access_token) {
+      headers.Authorization = `Bearer ${data.session.access_token}`;
+    }
+  }
+  return headers;
+}
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -88,15 +101,41 @@ export interface OnboardingSubmitResponse {
 }
 
 export async function submitOnboarding(answers: OnboardingAnswers): Promise<OnboardingSubmitResponse> {
+  const headers = await getAuthHeaders();
   const response = await fetch(`${BASE_URL}/api/onboarding/submit`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(answers),
   });
+
+  if (!response.ok) {
+    const errBody = await response.json().catch(() => ({}));
+    throw new Error(errBody.error ?? `API error: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+export interface FetchChefCardResponse {
+  ok: boolean;
+  chefCard: ChefCard;
+}
+
+export async function fetchChefCard(): Promise<ChefCard | null> {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${BASE_URL}/api/profile/chef-card`, {
+    method: 'GET',
+    headers,
+  });
+
+  if (response.status === 404) {
+    return null;
+  }
 
   if (!response.ok) {
     throw new Error(`API error: ${response.status}`);
   }
 
-  return response.json();
+  const data: FetchChefCardResponse = await response.json();
+  return data.chefCard ?? null;
 }
