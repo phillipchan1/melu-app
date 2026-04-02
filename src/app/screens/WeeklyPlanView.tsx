@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import type { Meal, Plan } from "../lib/api";
 
 import { BottomNav } from "../components/BottomNav";
+import { useWeeklyPlanStore } from "../stores/weeklyPlanStore";
 import { Button } from "../components/ui/button";
 import { MealCard, ScreenShell } from "../components/design-system";
 
@@ -39,6 +41,13 @@ export function WeeklyPlanView() {
   const navigate = useNavigate();
   const location = useLocation();
   const plan = (location.state as { plan?: Plan } | null)?.plan;
+  const setCurrentPlan = useWeeklyPlanStore((s) => s.setCurrentPlan);
+
+  useEffect(() => {
+    if (plan?.meals?.length) {
+      setCurrentPlan(plan);
+    }
+  }, [plan, setCurrentPlan]);
 
   if (!plan?.meals?.length) {
     return (

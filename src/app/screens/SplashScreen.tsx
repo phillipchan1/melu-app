@@ -1,10 +1,40 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
 import { Button } from "../components/ui/button";
 import { ScreenShell } from "../components/design-system";
+import { fetchProfileStatus } from "../lib/api";
 
 export function SplashScreen() {
   const navigate = useNavigate();
+  const [checkingProfile, setCheckingProfile] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const status = await fetchProfileStatus();
+        if (!cancelled && status.hasProfile) {
+          navigate("/home", { replace: true });
+          return;
+        }
+      } catch {
+        // Stay on splash if status fails (offline / misconfigured)
+      }
+      if (!cancelled) setCheckingProfile(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
+
+  if (checkingProfile) {
+    return (
+      <ScreenShell className="flex items-center justify-center min-h-[100dvh]">
+        <div className="w-8 h-8 rounded-full border-4 border-border border-t-primary animate-spin" />
+      </ScreenShell>
+    );
+  }
 
   return (
     <ScreenShell className="flex items-center justify-center">

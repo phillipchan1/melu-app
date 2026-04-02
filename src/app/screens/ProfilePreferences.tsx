@@ -14,8 +14,12 @@ import {
   AlertDialogTitle,
 } from "../components/ui/alert-dialog";
 import { buttonVariants } from "../components/ui/button";
+import { clearOnboardingDraft } from "../lib/onboardingDraft";
 import type { ChefCard as ChefCardType, Staple } from "../lib/api";
-import { fetchChefCard, fetchStaples } from "../lib/api";
+import { fetchChefCard, fetchStaples, resetProfile } from "../lib/api";
+import { clearMealsPreviewCache } from "../lib/mealsPreviewCache";
+import { useOnboardingChefCardStore } from "../stores/onboardingChefCardStore";
+import { useWeeklyPlanStore } from "../stores/weeklyPlanStore";
 
 function staplesProfileSummary(count: number): string {
   if (count === 0) return "No staples saved yet.";
@@ -26,6 +30,8 @@ function staplesProfileSummary(count: number): string {
 export function ProfilePreferences() {
   const navigate = useNavigate();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
   const [chefCard, setChefCard] = useState<ChefCardType | null>(null);
   const [staples, setStaples] = useState<Staple[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,7 +120,7 @@ export function ProfilePreferences() {
 
           <div className="mb-6 text-center mt-6">
             <p className="text-[13px] text-muted-foreground font-normal leading-[1.5]">
-              To update your profile, tap Reset below to retake the questionnaire.
+              To start over, use Reset profile below — it clears your saved data and questionnaire.
             </p>
           </div>
         </>
@@ -145,22 +151,52 @@ export function ProfilePreferences() {
         </div>
       )}
 
-      <AlertDialog open={showResetConfirm} onOpenChange={setShowResetConfirm}>
+      <AlertDialog
+        open={showResetConfirm}
+        onOpenChange={(open) => {
+          setShowResetConfirm(open);
+          if (!open) setResetError(null);
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Reset profile?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will overwrite your current profile and start fresh. You&apos;ll
-              retake the questionnaire to get a new cooking archetype.
+              This removes your Melu profile, meal plans, staples, and picks from our servers,
+              then sends you back to onboarding. This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {resetError ? (
+            <p className="text-[13px] text-red-600 px-6 pb-2">{resetError}</p>
+          ) : null}
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={resetting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               className={buttonVariants({ variant: "destructive" })}
-              onClick={() => navigate("/onboarding")}
+              disabled={resetting}
+              onClick={(e) => {
+                e.preventDefault();
+                void (async () => {
+                  setResetError(null);
+                  setResetting(true);
+                  try {
+                    await resetProfile();
+                    clearMealsPreviewCache();
+                    clearOnboardingDraft();
+                    useWeeklyPlanStore.getState().setCurrentPlan(null);
+                    useWeeklyPlanStore.getState().setNextPlan(null);
+                    useOnboardingChefCardStore.getState().reset();
+                    setShowResetConfirm(false);
+                    navigate("/onboarding");
+                  } catch (err) {
+                    setResetError(err instanceof Error ? err.message : "Reset failed");
+                  } finally {
+                    setResetting(false);
+                  }
+                })();
+              }}
             >
-              Yes, reset
+              {resetting ? "Resetting…" : "Yes, reset"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -127,7 +127,8 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   if (loading) return <LoadingScreen />;
   if (!session?.user) return <SignInScreen />;
 
-  const hideSessionHeader = location.pathname === "/onboarding/loading";
+  const hideSessionHeader =
+    location.pathname === "/onboarding/loading" || location.pathname === "/home";
 
   if (hideSessionHeader) {
     return <>{children}</>;

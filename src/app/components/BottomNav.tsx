@@ -1,8 +1,8 @@
-import { Calendar, Clock, UtensilsCrossed } from "lucide-react";
+import { Calendar, Clock } from "lucide-react";
 import { useNavigate } from "react-router";
 
 interface BottomNavProps {
-  activeTab: "this-week" | "coming-up" | "staples";
+  activeTab: "this-week" | "coming-up";
 }
 
 export function BottomNav({ activeTab }: BottomNavProps) {
@@ -24,7 +24,7 @@ export function BottomNav({ activeTab }: BottomNavProps) {
         <span
           className={`text-[11px] font-normal ${activeTab === "this-week" ? activeClass : inactiveClass}`}
         >
-          This Week
+          This week
         </span>
       </button>
       <button
@@ -38,21 +38,7 @@ export function BottomNav({ activeTab }: BottomNavProps) {
         <span
           className={`text-[11px] font-normal ${activeTab === "coming-up" ? activeClass : inactiveClass}`}
         >
-          Coming Up
-        </span>
-      </button>
-      <button
-        type="button"
-        onClick={() => navigate("/staples")}
-        className="flex flex-col items-center gap-1 py-2 min-w-[72px]"
-      >
-        <UtensilsCrossed
-          className={`w-6 h-6 ${activeTab === "staples" ? activeClass : inactiveClass}`}
-        />
-        <span
-          className={`text-[11px] font-normal ${activeTab === "staples" ? activeClass : inactiveClass}`}
-        >
-          Staples
+          Coming up
         </span>
       </button>
     </div>

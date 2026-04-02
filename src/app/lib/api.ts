@@ -204,6 +204,45 @@ export async function fetchChefCard(): Promise<ChefCard | null> {
   return data.chefCard ?? null;
 }
 
+export interface ProfileStatusResponse {
+  ok: boolean;
+  hasProfile: boolean;
+}
+
+export async function fetchProfileStatus(): Promise<ProfileStatusResponse> {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${BASE_URL}/api/profile/status`, {
+    method: 'GET',
+    headers,
+  });
+
+  if (!response.ok) {
+    const errBody = await response.json().catch(() => ({}));
+    throw new Error(
+      typeof errBody.error === 'string' ? errBody.error : `API error: ${response.status}`,
+    );
+  }
+
+  return response.json();
+}
+
+/** Clears server-side profile, plans, staples, and user meals; client should clear local caches and stores. */
+export async function resetProfile(): Promise<void> {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${BASE_URL}/api/profile/reset`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({}),
+  });
+
+  if (!response.ok) {
+    const errBody = await response.json().catch(() => ({}));
+    throw new Error(
+      typeof errBody.error === 'string' ? errBody.error : `API error: ${response.status}`,
+    );
+  }
+}
+
 export interface PostChefCardResponse {
   ok: boolean;
   chefCard: ChefCard;
