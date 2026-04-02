@@ -3,12 +3,18 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { OnboardingProgressBar } from "../components/OnboardingProgressBar";
 import { MealSelector, StaplesSearchOverlay } from "../components/StaplesSearchOverlay";
-import { type OnboardingAnswers, type Staple, submitOnboarding } from "../lib/api";
+import {
+  type OnboardingAnswers,
+  type Staple,
+  postChefCardGenerate,
+  submitOnboarding,
+} from "../lib/api";
 import {
   clearOnboardingDraft,
   loadOnboardingDraft,
   saveOnboardingDraft,
 } from "../lib/onboardingDraft";
+import { useOnboardingChefCardStore } from "../stores/onboardingChefCardStore";
 
 /** Shown under "Step 1 of 3" only; steps 2–3 use no step-indicator subtitle. */
 const STEP_1_INDICATOR_SUBTITLE = "Basic info";
@@ -211,13 +217,11 @@ function buildStep1SummaryRows(answers: OnboardingAnswers, q2OtherTrimmed: strin
   const rows: BasicInfoSummaryRow[] = [];
   const { adults, kids, kidAges = [] } = answers.q1;
 
-  const showCooking = adults !== 2 || kids !== 0 || kidAges.length > 0;
-
-  if (showCooking) {
+  if (adults >= 1) {
     rows.push({
       id: "cooking",
       label: "Cooking for",
-      value: `${adults} adults, ${kids} kids`,
+      value: `${adults} adult${adults === 1 ? "" : "s"}, ${kids} kid${kids === 1 ? "" : "s"}`,
     });
   }
 
@@ -286,7 +290,7 @@ function Step1MeluLearningPanel({ rows }: Readonly<{ rows: BasicInfoSummaryRow[]
 
   return (
     <aside
-      className="hidden md:flex md:flex-col md:w-[320px] md:shrink-0 md:sticky md:top-20 md:self-start md:rounded-2xl md:border md:border-border md:bg-card md:p-6"
+      className="hidden md:flex md:flex-col md:w-[320px] md:shrink-0 md:sticky md:top-24 md:z-10 md:self-start md:rounded-2xl md:border md:border-border md:bg-card md:p-6"
       aria-live="polite"
     >
       <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-4">
@@ -342,6 +346,8 @@ function pathToSectionIndex(pathname: string): number {
 export function ProfileSetup() {
   const navigate = useNavigate();
   const location = useLocation();
+  const setChefCardPromise = useOnboardingChefCardStore((s) => s.setChefCardPromise);
+  const setChefCardError = useOnboardingChefCardStore((s) => s.setChefCardError);
   const initial = useMemo(() => getInitialOnboardingState(), []);
   const [answers, setAnswers] = useState<OnboardingAnswers>(initial.answers);
   const sectionIndex = pathToSectionIndex(location.pathname);
@@ -375,7 +381,7 @@ export function ProfileSetup() {
 
   const getNextButtonLabel = () => {
     if (isSubmitting) return "Creating your card...";
-    if (isLastSection) return "See my Chef Card";
+    if (isLastSection) return "Let's go";
     if (sectionIndex === 1) return "Continue";
     return "Next";
   };
@@ -406,7 +412,10 @@ export function ProfileSetup() {
     try {
       await submitOnboarding(payload);
       clearOnboardingDraft();
-      navigate("/onboarding/complete");
+      setChefCardError(false);
+      const p = postChefCardGenerate();
+      setChefCardPromise(p);
+      navigate("/onboarding/loading");
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -461,18 +470,14 @@ export function ProfileSetup() {
       <div
         className={`flex-1 pb-32 min-h-0 ${
           sectionIndex === 0 ? "px-page md:px-8" : "px-page"
-        } ${sectionIndex === 1 || sectionIndex === 2 ? "flex flex-col overflow-hidden" : "overflow-y-auto"}`}
+        } ${
+          sectionIndex === 1 || sectionIndex === 2
+            ? "flex flex-col min-h-0 overflow-hidden md:overflow-visible"
+            : sectionIndex === 0
+              ? ""
+              : "overflow-y-auto"
+        }`}
       >
-        {sectionIndex < 2 && sectionIndex !== 1 && (
-          <>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-1">
-              {section.kicker}
-            </p>
-            <h2 className="text-[20px] text-foreground mb-2 font-semibold leading-snug">{section.headline}</h2>
-            <p className="text-[14px] text-muted-foreground mb-6 leading-relaxed">{section.subtitle}</p>
-          </>
-        )}
-
         {sectionIndex === 1 && (
           <>
             <h2 className="text-[20px] text-foreground mb-2 font-semibold leading-snug">{section.headline}</h2>
@@ -492,6 +497,13 @@ export function ProfileSetup() {
         {sectionIndex === 0 && (
           <div className="md:grid md:grid-cols-[1fr_320px] md:gap-12 md:items-start md:min-w-0">
             <div className="space-y-8 min-w-0">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-1">
+                  {section.kicker}
+                </p>
+                <h2 className="text-[20px] text-foreground mb-2 font-semibold leading-snug">{section.headline}</h2>
+                <p className="text-[14px] text-muted-foreground mb-6 leading-relaxed">{section.subtitle}</p>
+              </div>
               <div>
                 <p className="text-[15px] text-foreground mb-3">Who are you feeding?</p>
                 <div className="space-y-4 bg-card rounded-2xl p-5 shadow-sm">

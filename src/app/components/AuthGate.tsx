@@ -127,6 +127,12 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   if (loading) return <LoadingScreen />;
   if (!session?.user) return <SignInScreen />;
 
+  const hideSessionHeader = location.pathname === "/onboarding/loading";
+
+  if (hideSessionHeader) {
+    return <>{children}</>;
+  }
+
   return (
     <div>
       <div className="sticky top-0 z-50 bg-card/90 backdrop-blur-sm border-b border-border">

@@ -111,15 +111,25 @@ export function StaplesSearchOverlay({
   const [activeCuisineTab, setActiveCuisineTab] = useState<StapleCuisineTabId>(STAPLE_CUISINE_TAB_ALL);
   const [extraTabsOpen, setExtraTabsOpen] = useState(false);
 
+  /** Keep local list in sync when parent `selected` changes (draft, navigation, etc.). */
   useEffect(() => {
     if (embedded || open) {
       setLocal(selected);
+    }
+  }, [embedded, open, selected]);
+
+  /**
+   * Reset filters and focus search only when the overlay opens — not when `selected` changes
+   * from a tap (refocusing the input scrolls the page to the search field).
+   */
+  useEffect(() => {
+    if (embedded || open) {
       setQuery("");
       setActiveCuisineTab(STAPLE_CUISINE_TAB_ALL);
       setExtraTabsOpen(false);
-      requestAnimationFrame(() => searchRef.current?.focus());
+      requestAnimationFrame(() => searchRef.current?.focus({ preventScroll: true }));
     }
-  }, [embedded, open, selected]);
+  }, [embedded, open]);
 
   const fuseResults = useMemo(() => searchRotationMeals(query), [query]);
 
@@ -294,9 +304,9 @@ export function StaplesSearchOverlay({
   const desktopYourStaplesPanel = (
     <div
       className={cn(
-        "hidden md:flex md:flex-col md:min-h-0 md:max-h-[min(90dvh,900px)] md:sticky md:top-0 md:self-start md:border md:border-border md:rounded-2xl md:p-4 md:bg-card/30",
+        "hidden md:flex md:flex-col md:min-h-0 md:max-h-[min(90dvh,900px)] md:sticky md:self-start md:border md:border-border md:rounded-2xl md:p-4 md:bg-card/30",
         "md:w-[320px] md:min-w-[320px] md:max-w-[320px] md:shrink-0",
-        embedded && "md:max-h-[min(70dvh,800px)]",
+        embedded ? "md:max-h-[min(70dvh,800px)] md:top-24 md:z-10" : "md:top-0",
       )}
     >
       <h3 className="text-[13px] font-medium text-muted-foreground mb-3 shrink-0">{panelTitle}</h3>
@@ -345,11 +355,16 @@ export function StaplesSearchOverlay({
 
       <div
         className={cn(
-          "flex-1 min-h-0 flex flex-col min-w-0 md:grid md:grid-cols-[minmax(0,1fr)_320px] md:gap-8 md:items-start md:overflow-hidden md:min-h-0",
-          embedded ? "md:px-0" : "md:px-page md:pb-4",
+          "flex-1 min-h-0 flex flex-col min-w-0 md:grid md:grid-cols-[minmax(0,1fr)_320px] md:gap-8 md:items-start md:min-h-0",
+          embedded ? "md:overflow-visible md:px-0" : "md:overflow-hidden md:px-page md:pb-4",
         )}
       >
-            <div className="flex flex-col min-h-0 flex-1 min-w-0 md:overflow-hidden md:min-h-0 md:h-full">
+            <div
+              className={cn(
+                "flex flex-col min-h-0 flex-1 min-w-0 md:min-h-0",
+                embedded ? "md:overflow-visible" : "md:overflow-hidden md:h-full",
+              )}
+            >
               <div className="px-page md:px-0 pb-3 space-y-3 shrink-0">{cuisineTabRows}</div>
 
               <div className="px-page md:px-0 pb-3 shrink-0">
@@ -369,8 +384,8 @@ export function StaplesSearchOverlay({
 
               <div
                 className={cn(
-                  "flex-1 min-h-0 overflow-y-auto px-page md:px-0 md:overflow-y-auto",
-                  embedded ? "pb-6" : "pb-[200px] md:pb-0",
+                  "flex-1 min-h-0 overflow-y-auto px-page md:px-0",
+                  embedded ? "pb-6 md:overflow-visible md:pb-32" : "pb-[200px] md:pb-0 md:overflow-y-auto",
                 )}
               >
                 {mealList}

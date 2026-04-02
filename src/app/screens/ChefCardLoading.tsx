@@ -65,7 +65,7 @@ export function ChefCardLoading() {
 
   useEffect(() => {
     if (chefCardPromise == null) {
-      navigate("/onboarding/complete", { replace: true });
+      navigate("/onboarding", { replace: true });
       return;
     }
 
@@ -107,7 +107,7 @@ export function ChefCardLoading() {
       </div>
       <div className="shrink-0 pb-12 px-page flex justify-center">
         <p className="text-[14px] text-muted-foreground text-center tracking-[0.01em] max-w-[320px]">
-          Building a plan that actually knows your family.
+          Getting to know your family&apos;s kitchen.
         </p>
       </div>
     </div>
