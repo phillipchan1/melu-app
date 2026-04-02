@@ -103,7 +103,8 @@ export interface ChefCardComparison {
 export interface ChefCard {
   buildName: string;
   overallScore: number;
-  tagline: string;
+  /** Omitted in error fallback UI when generation fails */
+  tagline?: string;
   comparisons: ChefCardComparison[];
   dimensionScores: Record<string, number>;
   /** @deprecated Prefer rotationCuisineTags from server */
@@ -116,8 +117,7 @@ export interface ChefCard {
 
 export interface OnboardingSubmitResponse {
   ok: boolean;
-  chefCard: ChefCard;
-  profile: Record<string, unknown>;
+  profile?: Record<string, unknown>;
 }
 
 export async function submitOnboarding(answers: OnboardingAnswers): Promise<OnboardingSubmitResponse> {
@@ -202,6 +202,52 @@ export async function fetchChefCard(): Promise<ChefCard | null> {
 
   const data: FetchChefCardResponse = await response.json();
   return data.chefCard ?? null;
+}
+
+export interface PostChefCardResponse {
+  ok: boolean;
+  chefCard: ChefCard;
+}
+
+/** Generate and persist Chef Card (POST). Call after onboarding submit + user_meals sync. */
+export async function postChefCardGenerate(): Promise<ChefCard> {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${BASE_URL}/api/profile/chef-card`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({}),
+  });
+
+  if (!response.ok) {
+    const errBody = await response.json().catch(() => ({}));
+    throw new Error(
+      typeof errBody.error === "string" ? errBody.error : `API error: ${response.status}`,
+    );
+  }
+
+  const data: PostChefCardResponse = await response.json();
+  return data.chefCard;
+}
+
+export interface MealsPreviewResponse {
+  ok: boolean;
+  topRotationMeals: string[];
+  topAspirations: string[];
+}
+
+/** Meal names for onboarding loading lines (user_meals). */
+export async function fetchMealsPreview(): Promise<MealsPreviewResponse> {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${BASE_URL}/api/profile/meals-preview`, {
+    method: "GET",
+    headers,
+  });
+
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`);
+  }
+
+  return response.json();
 }
 
 export interface StaplesListResponse {

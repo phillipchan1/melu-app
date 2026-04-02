@@ -1,5 +1,6 @@
 import type { OnboardingAnswers, Staple } from './api';
 
+/** localStorage survives refresh and route remounts; cleared on successful submit. */
 export const ONBOARDING_DRAFT_KEY = 'melu:onboarding-draft';
 
 const DRAFT_VERSION = 4 as const;
@@ -11,8 +12,28 @@ export type OnboardingDraft = {
   q2Other: string;
 };
 
-function canUseSessionStorage(): boolean {
-  return typeof sessionStorage !== 'undefined';
+function canUseLocalStorage(): boolean {
+  return typeof localStorage !== 'undefined';
+}
+
+/** Prefer localStorage; migrate legacy sessionStorage draft once. */
+function readRawDraft(): string | null {
+  if (!canUseLocalStorage()) return null;
+  try {
+    const fromLocal = localStorage.getItem(ONBOARDING_DRAFT_KEY);
+    if (fromLocal) return fromLocal;
+    if (typeof sessionStorage !== 'undefined') {
+      const fromSession = sessionStorage.getItem(ONBOARDING_DRAFT_KEY);
+      if (fromSession) {
+        localStorage.setItem(ONBOARDING_DRAFT_KEY, fromSession);
+        sessionStorage.removeItem(ONBOARDING_DRAFT_KEY);
+        return fromSession;
+      }
+    }
+  } catch {
+    /* private mode / quota */
+  }
+  return null;
 }
 
 function isStaple(x: unknown): x is Staple {
@@ -107,9 +128,9 @@ export function mergeDraftAnswers(
 export function loadOnboardingDraft(
   defaults: OnboardingAnswers,
 ): Pick<OnboardingDraft, 'answers' | 'sectionIndex' | 'q2Other'> | null {
-  if (!canUseSessionStorage()) return null;
+  if (!canUseLocalStorage()) return null;
   try {
-    const raw = sessionStorage.getItem(ONBOARDING_DRAFT_KEY);
+    const raw = readRawDraft();
     if (!raw) return null;
     const parsed = JSON.parse(raw) as unknown;
     if (!parsed || typeof parsed !== 'object') return null;
@@ -131,7 +152,7 @@ export function loadOnboardingDraft(
 }
 
 export function saveOnboardingDraft(draft: Omit<OnboardingDraft, 'version'>): void {
-  if (!canUseSessionStorage()) return;
+  if (!canUseLocalStorage()) return;
   try {
     const payload: OnboardingDraft = {
       version: DRAFT_VERSION,
@@ -139,16 +160,19 @@ export function saveOnboardingDraft(draft: Omit<OnboardingDraft, 'version'>): vo
       sectionIndex: draft.sectionIndex,
       q2Other: draft.q2Other,
     };
-    sessionStorage.setItem(ONBOARDING_DRAFT_KEY, JSON.stringify(payload));
+    localStorage.setItem(ONBOARDING_DRAFT_KEY, JSON.stringify(payload));
   } catch {
     /* private mode / quota */
   }
 }
 
 export function clearOnboardingDraft(): void {
-  if (!canUseSessionStorage()) return;
+  if (!canUseLocalStorage()) return;
   try {
-    sessionStorage.removeItem(ONBOARDING_DRAFT_KEY);
+    localStorage.removeItem(ONBOARDING_DRAFT_KEY);
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem(ONBOARDING_DRAFT_KEY);
+    }
   } catch {
     /* no-op */
   }

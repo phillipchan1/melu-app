@@ -1,7 +1,9 @@
 import { createBrowserRouter, Navigate, Outlet } from "react-router";
 import { SplashScreen } from "./screens/SplashScreen";
 import { ProfileSetup } from "./screens/ProfileSetup";
-import { OnboardingTransition } from "./screens/OnboardingTransition";
+import { OnboardingComplete } from "./screens/OnboardingComplete";
+import { ChefCardLoading } from "./screens/ChefCardLoading";
+import { OnboardingChefCard } from "./screens/OnboardingChefCard";
 import { WeeklyCheckIn } from "./screens/WeeklyCheckIn";
 import { HomeDashboard } from "./screens/HomeDashboard";
 import { ComingUp } from "./screens/ComingUp";
@@ -22,24 +24,28 @@ export const router = createBrowserRouter([
     children: [
       { index: true, Component: SplashScreen },
       {
-        path: "onboarding/aspirations",
-        Component: ProfileSetup,
+        path: "onboarding/complete",
+        Component: OnboardingComplete,
+      },
+      {
+        path: "onboarding/loading",
+        Component: ChefCardLoading,
+      },
+      {
+        path: "onboarding/chef-card",
+        Component: OnboardingChefCard,
       },
       {
         path: "onboarding/goals",
         element: <Navigate to="/onboarding/aspirations" replace />,
       },
       {
-        path: "onboarding/staples",
-        Component: ProfileSetup,
-      },
-      {
-        path: "onboarding",
-        Component: ProfileSetup,
-      },
-      {
         path: "onboarding-transition",
-        Component: OnboardingTransition,
+        element: <Navigate to="/onboarding/complete" replace />,
+      },
+      {
+        path: "onboarding/*",
+        Component: ProfileSetup,
       },
       {
         path: "weekly-checkin",

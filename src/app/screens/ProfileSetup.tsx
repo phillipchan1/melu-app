@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
+import { OnboardingProgressBar } from "../components/OnboardingProgressBar";
 import { MealSelector, StaplesSearchOverlay } from "../components/StaplesSearchOverlay";
 import { type OnboardingAnswers, type Staple, submitOnboarding } from "../lib/api";
 import {
@@ -338,34 +339,15 @@ function pathToSectionIndex(pathname: string): number {
   return 0;
 }
 
-function pathForSectionIndex(index: number): string {
-  if (index <= 0) return "/onboarding";
-  if (index === 1) return "/onboarding/staples";
-  return "/onboarding/aspirations";
-}
-
 export function ProfileSetup() {
   const navigate = useNavigate();
   const location = useLocation();
   const initial = useMemo(() => getInitialOnboardingState(), []);
   const [answers, setAnswers] = useState<OnboardingAnswers>(initial.answers);
-  const didSyncDraftToUrl = useRef(false);
-
   const sectionIndex = pathToSectionIndex(location.pathname);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [q2Other, setQ2Other] = useState(initial.q2Other);
-  /** Restore draft step to URL once on load; browser back must not re-run. */
-  useLayoutEffect(() => {
-    if (didSyncDraftToUrl.current) return;
-    didSyncDraftToUrl.current = true;
-    const target = pathForSectionIndex(initial.sectionIndex);
-    const normalized = location.pathname.replace(/\/$/, "") || "/";
-    const normalizedTarget = target.replace(/\/$/, "") || "/";
-    if (normalized !== normalizedTarget) {
-      navigate(target, { replace: true });
-    }
-  }, [initial.sectionIndex, location.pathname, navigate]);
 
   useEffect(() => {
     saveOnboardingDraft({ answers, sectionIndex, q2Other });
@@ -404,10 +386,12 @@ export function ProfileSetup() {
       return;
     }
     if (sectionIndex === 0) {
+      saveOnboardingDraft({ answers, sectionIndex: 1, q2Other });
       navigate("/onboarding/staples");
       return;
     }
     if (sectionIndex === 1) {
+      saveOnboardingDraft({ answers, sectionIndex: 2, q2Other });
       navigate("/onboarding/aspirations");
     }
   };
@@ -420,9 +404,9 @@ export function ProfileSetup() {
       q2: [...answers.q2, ...(q2Other.trim() ? [q2Other.trim()] : [])],
     };
     try {
-      const res = await submitOnboarding(payload);
+      await submitOnboarding(payload);
       clearOnboardingDraft();
-      navigate("/onboarding-transition", { state: { chefCard: res.chefCard } });
+      navigate("/onboarding/complete");
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -431,7 +415,9 @@ export function ProfileSetup() {
   };
 
   const handleStaplesConfirmed = (items: Staple[]) => {
-    update("staples", items);
+    const nextAnswers = { ...answers, staples: items };
+    setAnswers(nextAnswers);
+    saveOnboardingDraft({ answers: nextAnswers, sectionIndex: 2, q2Other });
     navigate("/onboarding/aspirations");
   };
 
@@ -463,7 +449,8 @@ export function ProfileSetup() {
         <div className="text-[22px] text-primary font-semibold">
           melu
         </div>
-        <div className="text-[13px] text-muted-foreground mt-1">
+        <OnboardingProgressBar currentStep={stepNumber} totalSteps={3} />
+        <div className="text-[13px] text-muted-foreground">
           Step {stepNumber} of 3
         </div>
         {sectionIndex === 0 ? (
@@ -638,8 +625,13 @@ export function ProfileSetup() {
         <button
           type="button"
           onClick={() => {
-            if (sectionIndex === 2) navigate("/onboarding/staples");
-            else if (sectionIndex === 1) navigate("/onboarding");
+            if (sectionIndex === 2) {
+              saveOnboardingDraft({ answers, sectionIndex: 1, q2Other });
+              navigate("/onboarding/staples");
+            } else if (sectionIndex === 1) {
+              saveOnboardingDraft({ answers, sectionIndex: 0, q2Other });
+              navigate("/onboarding");
+            }
           }}
           disabled={sectionIndex === 0}
           className="flex items-center gap-1 text-muted-foreground disabled:opacity-40"
