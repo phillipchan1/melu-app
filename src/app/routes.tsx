@@ -4,10 +4,10 @@ import { ProfileSetup } from "./screens/ProfileSetup";
 import { ChefCardLoading } from "./screens/ChefCardLoading";
 import { OnboardingChefCard } from "./screens/OnboardingChefCard";
 import { WeeklyCheckIn } from "./screens/WeeklyCheckIn";
+import { WeeklyCheckInContext } from "./screens/WeeklyCheckInContext";
 import { HomeDashboard } from "./screens/HomeDashboard";
 import { ComingUp } from "./screens/ComingUp";
 import { WeeklyPlanView } from "./screens/WeeklyPlanView";
-import { ApproveConfirmation } from "./screens/ApproveConfirmation";
 import { GroceryComingSoon } from "./screens/GroceryComingSoon";
 import { ProfilePreferences } from "./screens/ProfilePreferences";
 import { StaplesScreen } from "./screens/StaplesScreen";
@@ -43,6 +43,10 @@ export const router = createBrowserRouter([
         Component: ProfileSetup,
       },
       {
+        path: "weekly-checkin/context",
+        Component: WeeklyCheckInContext,
+      },
+      {
         path: "weekly-checkin",
         Component: WeeklyCheckIn,
       },
@@ -58,10 +62,7 @@ export const router = createBrowserRouter([
         path: "plan",
         Component: WeeklyPlanView,
       },
-      {
-        path: "confirmation",
-        Component: ApproveConfirmation,
-      },
+      // /confirmation (ApproveConfirmation) removed — approve navigates to /home?approved=true
       {
         path: "grocery",
         Component: GroceryComingSoon,

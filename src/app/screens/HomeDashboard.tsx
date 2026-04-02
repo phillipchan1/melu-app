@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useEffect, useLayoutEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router";
 
 import { BottomNav } from "../components/BottomNav";
 import { MeluCard, ScreenShell, TopBar } from "../components/design-system";
@@ -99,6 +99,16 @@ function SourceTag({ kind }: { kind: "staple" | "aspiration" }) {
   );
 }
 
+const CALENDAR_DAY_ORDER = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+] as const;
+
 function WeekPlanCard({
   plan,
   onViewFullPlan,
@@ -107,15 +117,48 @@ function WeekPlanCard({
   onViewFullPlan: () => void;
 }) {
   const meals = plan.meals;
+  const dayNames = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  const todayName = dayNames[new Date().getDay()];
+  const todayIdx = CALENDAR_DAY_ORDER.indexOf(
+    todayName as (typeof CALENDAR_DAY_ORDER)[number],
+  );
 
   return (
     <MeluCard>
       {meals.map((meal, index) => {
         const src = mealSourceType(meal);
+        const mealIdx = CALENDAR_DAY_ORDER.indexOf(
+          meal.day as (typeof CALENDAR_DAY_ORDER)[number],
+        );
+        const isPast =
+          mealIdx !== -1 && todayIdx !== -1 && mealIdx < todayIdx;
+        const isToday = meal.day === todayName;
         return (
-          <div key={`${meal.day}-${meal.name}-${index}`}>
+          <div
+            key={`${meal.day}-${meal.name}-${index}`}
+            className={cn(
+              "rounded-lg",
+              isPast && "opacity-50",
+              isToday && "border-l-[3px] border-l-[#7C9E7A] bg-[#F0F5F0] pl-[13px]",
+            )}
+          >
             <div className="flex items-center justify-between gap-2 py-2">
-              <span className="text-[12px] text-muted-foreground font-normal shrink-0">
+              <span
+                className={cn(
+                  "text-[12px] font-normal shrink-0",
+                  isToday && "text-[#7C9E7A]",
+                  isPast && "text-[#B5B2AE]",
+                  !isToday && !isPast && "text-muted-foreground",
+                )}
+              >
                 {dayToAbbrev(meal.day)}
               </span>
               <div className="flex flex-1 min-w-0 items-center justify-end gap-1 flex-wrap">
@@ -210,16 +253,50 @@ function readInitialPreview(): { staples: string[]; aspirations: string[] } {
   };
 }
 
+type ApprovalToastPhase = "idle" | "fadeIn" | "visible" | "fadeOut";
+
 export function HomeDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const plan = useWeeklyPlanStore((s) => s.currentPlan);
   const hasPlan = Boolean(plan?.meals?.length);
+
+  const [approvalToastPhase, setApprovalToastPhase] = useState<ApprovalToastPhase>("idle");
 
   const [firstName, setFirstName] = useState("there");
   const [avatarInitial, setAvatarInitial] = useState("?");
   const [mealPreviewNames, setMealPreviewNames] = useState(() => readInitialPreview());
   const stapleNames = mealPreviewNames.staples;
   const aspirationNames = mealPreviewNames.aspirations;
+
+  useLayoutEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("approved") !== "true") return;
+    navigate({ pathname: location.pathname, search: "" }, { replace: true });
+    setApprovalToastPhase("fadeIn");
+  }, [location.search, location.pathname, navigate]);
+
+  useEffect(() => {
+    if (approvalToastPhase !== "fadeIn") return;
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setApprovalToastPhase("visible");
+      });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [approvalToastPhase]);
+
+  useEffect(() => {
+    if (approvalToastPhase !== "visible") return;
+    const t = globalThis.setTimeout(() => setApprovalToastPhase("fadeOut"), 3000);
+    return () => globalThis.clearTimeout(t);
+  }, [approvalToastPhase]);
+
+  useEffect(() => {
+    if (approvalToastPhase !== "fadeOut") return;
+    const t = globalThis.setTimeout(() => setApprovalToastPhase("idle"), 300);
+    return () => globalThis.clearTimeout(t);
+  }, [approvalToastPhase]);
 
   useEffect(() => {
     let cancelled = false;
@@ -331,8 +408,27 @@ export function HomeDashboard() {
       />
     ) : null;
 
+  const showApprovalToast = approvalToastPhase !== "idle";
+
   return (
     <ScreenShell className="pb-[76px] md:pb-0 md:max-w-none md:w-full">
+      {showApprovalToast ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className={cn(
+            "fixed left-1/2 z-[100] max-w-[320px] w-fit -translate-x-1/2 rounded-[9999px] px-5 py-3 text-[14px] font-medium text-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] transition-opacity",
+            "bottom-6",
+            approvalToastPhase === "fadeIn" && "opacity-0 duration-200",
+            approvalToastPhase === "visible" && "opacity-100 duration-200",
+            approvalToastPhase === "fadeOut" && "opacity-0 duration-300",
+          )}
+          style={{ backgroundColor: "#1C1917" }}
+        >
+          Plan approved. Your week is set.
+        </div>
+      ) : null}
+
       <div className="md:hidden">
         <TopBar right={avatarButton} />
       </div>

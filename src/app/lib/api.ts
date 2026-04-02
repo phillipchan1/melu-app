@@ -166,11 +166,30 @@ export interface GeneratePlanResponse {
   plan: Plan;
 }
 
-export async function generatePlan(): Promise<Plan> {
+export interface GeneratePlanOptions {
+  selectedNights?: string[];
+  weeklyContext?: string;
+  /** ISO string — server uses for prompt context (exclude past days client-side). */
+  todayDate?: string;
+}
+
+export async function generatePlan(options: GeneratePlanOptions = {}): Promise<Plan> {
   const headers = await getAuthHeaders();
+  const body: Record<string, unknown> = {};
+  if (options.selectedNights != null && options.selectedNights.length > 0) {
+    body.selectedNights = options.selectedNights;
+  }
+  if (options.weeklyContext != null && options.weeklyContext.length > 0) {
+    body.weeklyContext = options.weeklyContext;
+  }
+  if (options.todayDate != null && options.todayDate.length > 0) {
+    body.todayDate = options.todayDate;
+  }
+
   const response = await fetch(`${BASE_URL}/api/plan/generate`, {
     method: 'POST',
     headers,
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
@@ -180,6 +199,22 @@ export async function generatePlan(): Promise<Plan> {
 
   const data: GeneratePlanResponse = await response.json();
   return data.plan;
+}
+
+export async function approvePlan(planId: string): Promise<void> {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${BASE_URL}/api/plan/approve`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ planId }),
+  });
+
+  if (!response.ok) {
+    const errBody = await response.json().catch(() => ({}));
+    throw new Error(
+      typeof errBody.error === 'string' ? errBody.error : `API error: ${response.status}`,
+    );
+  }
 }
 
 export async function fetchChefCard(): Promise<ChefCard | null> {
