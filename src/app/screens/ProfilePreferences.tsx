@@ -14,13 +14,20 @@ import {
   AlertDialogTitle,
 } from "../components/ui/alert-dialog";
 import { buttonVariants } from "../components/ui/button";
-import type { ChefCard as ChefCardType } from "../lib/api";
-import { fetchChefCard } from "../lib/api";
+import type { ChefCard as ChefCardType, Staple } from "../lib/api";
+import { fetchChefCard, fetchStaples } from "../lib/api";
+
+function staplesProfileSummary(count: number): string {
+  if (count === 0) return "No staples saved yet.";
+  if (count === 1) return "1 dinner staple saved.";
+  return `${count} dinner staples saved.`;
+}
 
 export function ProfilePreferences() {
   const navigate = useNavigate();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [chefCard, setChefCard] = useState<ChefCardType | null>(null);
+  const [staples, setStaples] = useState<Staple[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,8 +37,14 @@ export function ProfilePreferences() {
       setLoading(true);
       setError(null);
       try {
-        const card = await fetchChefCard();
-        if (!cancelled) setChefCard(card);
+        const [card, staplesList] = await Promise.all([
+          fetchChefCard(),
+          fetchStaples().catch(() => [] as Staple[]),
+        ]);
+        if (!cancelled) {
+          setChefCard(card);
+          setStaples(staplesList);
+        }
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load profile");
       } finally {
@@ -80,6 +93,25 @@ export function ProfilePreferences() {
           <div className="flex justify-center">
             <ChefCard card={chefCard} />
           </div>
+
+          <div className="mt-8 mb-6 rounded-2xl border border-border bg-card p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-[15px] font-semibold text-foreground mb-1">Your staples</h2>
+                <p className="text-[13px] text-muted-foreground leading-relaxed">
+                  {staplesProfileSummary(staples.length)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate("/staples")}
+                className="shrink-0 text-[14px] font-semibold text-primary"
+              >
+                Manage
+              </button>
+            </div>
+          </div>
+
           <div className="mb-6 text-center mt-6">
             <p className="text-[13px] text-muted-foreground font-normal leading-[1.5]">
               To update your profile, tap Reset below to retake the questionnaire.

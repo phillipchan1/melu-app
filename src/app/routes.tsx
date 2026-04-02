@@ -9,6 +9,7 @@ import { WeeklyPlanView } from "./screens/WeeklyPlanView";
 import { ApproveConfirmation } from "./screens/ApproveConfirmation";
 import { GroceryComingSoon } from "./screens/GroceryComingSoon";
 import { ProfilePreferences } from "./screens/ProfilePreferences";
+import { StaplesScreen } from "./screens/StaplesScreen";
 import { AuthGate } from "./components/AuthGate";
 
 export const router = createBrowserRouter([
@@ -20,6 +21,10 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, Component: SplashScreen },
+      {
+        path: "onboarding/staples",
+        Component: ProfileSetup,
+      },
       {
         path: "onboarding",
         Component: ProfileSetup,
@@ -55,6 +60,10 @@ export const router = createBrowserRouter([
       {
         path: "profile",
         Component: ProfilePreferences,
+      },
+      {
+        path: "staples",
+        Component: StaplesScreen,
       },
     ],
   },

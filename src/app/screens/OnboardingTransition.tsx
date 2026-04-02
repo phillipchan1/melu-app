@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import type { ChefCard } from "../lib/api";
+import { generatePlan } from "../lib/api";
 
 import { ChefCard as ChefCardComponent, ScreenShell } from "../components/design-system";
 import { Button } from "../components/ui/button";
@@ -8,6 +10,22 @@ export function OnboardingTransition() {
   const navigate = useNavigate();
   const location = useLocation();
   const chefCard = (location.state as { chefCard?: ChefCard } | null)?.chefCard;
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleBuildPlan = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const plan = await generatePlan();
+      navigate("/plan", { state: { plan } });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to generate plan");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <ScreenShell className="flex flex-col items-center pt-12 pb-12">
@@ -46,12 +64,22 @@ export function OnboardingTransition() {
         </>
       )}
 
+      {error && (
+        <div className="flex flex-col items-center gap-3 mb-4">
+          <p className="text-sm text-destructive text-center max-w-xs">{error}</p>
+          <Button variant="outline" size="sm" onClick={handleBuildPlan} disabled={loading}>
+            Retry
+          </Button>
+        </div>
+      )}
+
       <Button
         variant="melu"
-        onClick={() => navigate("/weekly-checkin")}
+        onClick={handleBuildPlan}
+        disabled={loading}
         className="mt-auto"
       >
-        Build my first plan
+        {loading ? "Building your plan…" : "Build my first plan"}
       </Button>
     </ScreenShell>
   );

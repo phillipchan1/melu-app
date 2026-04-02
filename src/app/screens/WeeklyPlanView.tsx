@@ -1,73 +1,64 @@
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
+import type { Meal, Plan } from "../lib/api";
 
 import { BottomNav } from "../components/BottomNav";
 import { Button } from "../components/ui/button";
 import { MealCard, ScreenShell } from "../components/design-system";
 
-const MEALS = [
-  {
-    day: "MONDAY",
-    name: "Sheet Pan Lemon Chicken",
-    time: "30 min",
-    cuisine: "American",
-    ingredients: "Chicken, lemon, potatoes, green beans, garlic",
-    reason: "Under 30 min — fits your weeknights.",
-  },
-  {
-    day: "TUESDAY",
-    name: "Beef Tacos",
-    time: "20 min",
-    cuisine: "Mexican",
-    ingredients: "Ground beef, tortillas, cheddar, lettuce, tomato",
-    reason: "Your kids approved this twice.",
-  },
-  {
-    day: "WEDNESDAY",
-    name: "Pasta Primavera",
-    time: "25 min",
-    cuisine: "Italian",
-    ingredients: "Pasta, bell peppers, broccoli, parmesan, olive oil",
-    reason: "Mild and family-friendly.",
-  },
-  {
-    day: "THURSDAY",
-    name: "Teriyaki Salmon",
-    time: "25 min",
-    cuisine: "Asian",
-    ingredients: "Salmon, teriyaki sauce, rice, broccoli, sesame",
-    reason: "Phil, you gave this a thumbs up.",
-  },
-  {
-    day: "FRIDAY",
-    name: "BBQ Chicken Quesadillas",
-    time: "20 min",
-    cuisine: "American",
-    ingredients: "Chicken, tortillas, cheddar, BBQ sauce, green onion",
-    reason: "Fast — under 20 min.",
-  },
-  {
-    day: "SATURDAY",
-    name: "Slow Cooker Pulled Pork",
-    time: "15 min active",
-    cuisine: "American",
-    ingredients: "Pork shoulder, BBQ sauce, slider buns, coleslaw",
-    reason: "Weekend — more time, crowd-pleaser.",
-  },
-  {
-    day: "SUNDAY",
-    name: "One-Pan Roast Chicken",
-    time: "20 min active",
-    cuisine: "American",
-    ingredients: "Whole chicken, potatoes, rosemary, garlic, lemon",
-    reason: "Sunday dinner — simple, satisfying.",
-  },
-];
+const DAY_OFFSETS: Record<string, number> = {
+  Monday: 0,
+  Tuesday: 1,
+  Wednesday: 2,
+  Thursday: 3,
+  Friday: 4,
+  Saturday: 5,
+  Sunday: 6,
+};
+
+function mealToCardProps(meal: Meal, weekStart?: string) {
+  let date: number | undefined;
+  if (weekStart) {
+    const base = new Date(weekStart);
+    const offset = DAY_OFFSETS[meal.day] ?? 0;
+    const d = new Date(base);
+    d.setDate(base.getDate() + offset);
+    date = d.getDate();
+  }
+  return {
+    day: meal.day.toUpperCase(),
+    date,
+    name: meal.name,
+    time: `${meal.cookTime} min`,
+    cuisine: meal.cuisine,
+    ingredients: Array.isArray(meal.ingredients) ? meal.ingredients.join(", ") : "",
+    reason: meal.reasonTag,
+  };
+}
 
 export function WeeklyPlanView() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const plan = (location.state as { plan?: Plan } | null)?.plan;
+
+  if (!plan?.meals?.length) {
+    return (
+      <ScreenShell className="pb-[136px] flex flex-col items-center justify-center min-h-[60vh]">
+        <h1 className="text-[24px] text-foreground mb-2 font-semibold text-center">
+          No plan yet
+        </h1>
+        <p className="text-[15px] text-muted-foreground text-center max-w-xs mb-6">
+          Complete onboarding and build your first plan to see your week here.
+        </p>
+        <Button variant="melu" onClick={() => navigate("/onboarding")}>
+          Go to onboarding
+        </Button>
+        <BottomNav activeTab="this-week" />
+      </ScreenShell>
+    );
+  }
 
   return (
-    <ScreenShell className="pb-[136px]">
+    <ScreenShell className="pb-[136px] max-w-[375px] lg:max-w-7xl">
       <div className="pt-12 pb-6">
         <h1 className="text-[24px] text-foreground mb-2 font-semibold">
           Your week, sorted.
@@ -77,25 +68,20 @@ export function WeeklyPlanView() {
         </p>
       </div>
 
-      <div className="space-y-3">
-        {MEALS.map((meal) => (
+      <div className="grid grid-cols-1 lg:grid-cols-7 gap-4">
+        {plan.meals.map((meal) => (
           <MealCard
             key={meal.day}
-            day={meal.day}
-            name={meal.name}
-            time={meal.time}
-            cuisine={meal.cuisine}
-            ingredients={meal.ingredients}
-            reason={meal.reason}
+            {...mealToCardProps(meal, plan.weekStart)}
           />
         ))}
       </div>
 
-      <div className="fixed bottom-[76px] left-0 right-0 px-page max-w-[375px] mx-auto">
+      <div className="fixed bottom-[76px] left-1/2 -translate-x-1/2 w-full max-w-[375px] px-page">
         <Button
           variant="melu"
           onClick={() => navigate("/confirmation")}
-          className="text-[17px] font-semibold"
+          className="text-[17px] font-semibold w-full"
         >
           Looks good – approve this week
         </Button>

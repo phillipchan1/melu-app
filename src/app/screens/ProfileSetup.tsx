@@ -1,12 +1,17 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router";
-import { type OnboardingAnswers, submitOnboarding } from "../lib/api";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router";
+import { StaplesSearchOverlay } from "../components/StaplesSearchOverlay";
+import { type OnboardingAnswers, type Staple, submitOnboarding } from "../lib/api";
+import {
+  clearOnboardingDraft,
+  loadOnboardingDraft,
+  saveOnboardingDraft,
+} from "../lib/onboardingDraft";
 
 const SECTIONS = [
   { id: "kitchen", title: "Your Kitchen", step: 1 },
-  { id: "palate", title: "Your Palate", step: 2 },
-  { id: "reality", title: "Your Reality", step: 3 },
+  { id: "staples", title: "Your Staples", step: 2 },
 ] as const;
 
 const Q2_OPTIONS = [
@@ -29,14 +34,14 @@ const Q3_OPTIONS = [
   { value: "low_sodium", label: "Low-sodium" },
 ];
 
-const Q3B_OPTIONS = [
+const Q4_OPTIONS = [
   { value: "just_dinner", label: "It's just dinner" },
   { value: "balanced", label: "We try to be balanced" },
   { value: "priority", label: "It's a real priority" },
   { value: "non_negotiable", label: "It's non-negotiable" },
 ];
 
-const Q4_OPTIONS = [
+const Q5_OPTIONS = [
   { value: "oven", label: "Oven" },
   { value: "stovetop", label: "Stovetop" },
   { value: "air_fryer", label: "Air fryer" },
@@ -46,20 +51,11 @@ const Q4_OPTIONS = [
   { value: "microwave_only", label: "Microwave only" },
 ];
 
-const Q5_OPTIONS = [
+const Q6_OPTIONS = [
   { value: "under_20", label: "Under 20 min" },
   { value: "30", label: "30 min" },
   { value: "45", label: "45 min" },
   { value: "60_plus", label: "60+ min" },
-];
-
-const Q8_OPTIONS = [
-  { value: "bold_spicy", label: "Bold & spicy" },
-  { value: "rich_savory", label: "Rich & savory" },
-  { value: "bright_fresh", label: "Bright & fresh" },
-  { value: "light_healthy", label: "Light & healthy" },
-  { value: "sweet_comforting", label: "Sweet & comforting" },
-  { value: "umami_forward", label: "Umami-forward" },
 ];
 
 const Q9_OPTIONS = [
@@ -70,31 +66,18 @@ const Q9_OPTIONS = [
   { value: "5", label: "Surprise us" },
 ];
 
-const Q12_OPTIONS = [
-  { value: "trying_new", label: "Trying new things" },
-  { value: "nailing_meals", label: "Nailing meals we already know" },
-  { value: "both", label: "Both equally" },
-];
-
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-
 const KID_AGE_OPTIONS = ["toddler", "elementary", "teen"];
 
 const defaultAnswers: OnboardingAnswers = {
   q1: { adults: 2, kids: 0, kidAges: [] },
   q2: [],
   q3: [],
-  q3b: "",
-  q4: [],
-  q5: "",
+  q4: "",
+  q5: [],
   q6: "",
-  q7: "",
-  q8: [],
+  staples: [],
+  q8: "",
   q9: "",
-  q10: "",
-  q11: "",
-  q12: "",
-  q13: { days: [], note: "" },
 };
 
 function MultiSelect({
@@ -196,13 +179,51 @@ function Stepper({
   );
 }
 
+function getInitialOnboardingState() {
+  const draft = loadOnboardingDraft(defaultAnswers);
+  if (!draft) {
+    return {
+      answers: defaultAnswers,
+      sectionIndex: 0,
+      q2Other: "",
+    };
+  }
+  return {
+    answers: draft.answers,
+    sectionIndex: draft.sectionIndex,
+    q2Other: draft.q2Other,
+  };
+}
+
+function pathToSectionIndex(pathname: string): number {
+  return pathname.endsWith("/onboarding/staples") ? 1 : 0;
+}
+
 export function ProfileSetup() {
   const navigate = useNavigate();
-  const [sectionIndex, setSectionIndex] = useState(0);
-  const [answers, setAnswers] = useState<OnboardingAnswers>(defaultAnswers);
+  const location = useLocation();
+  const initial = useMemo(() => getInitialOnboardingState(), []);
+  const [answers, setAnswers] = useState<OnboardingAnswers>(initial.answers);
+  const didSyncDraftToUrl = useRef(false);
+
+  const sectionIndex = pathToSectionIndex(location.pathname);
+
+  /** Restore draft step 2 before paint; browser back to step 1 must not re-run this. */
+  useLayoutEffect(() => {
+    if (didSyncDraftToUrl.current) return;
+    didSyncDraftToUrl.current = true;
+    if (initial.sectionIndex === 1 && location.pathname === "/onboarding") {
+      navigate("/onboarding/staples", { replace: true });
+    }
+  }, [initial.sectionIndex, location.pathname, navigate]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [q2Other, setQ2Other] = useState("");
+  const [q2Other, setQ2Other] = useState(initial.q2Other);
+  const [staplesOpen, setStaplesOpen] = useState(false);
+
+  useEffect(() => {
+    saveOnboardingDraft({ answers, sectionIndex, q2Other });
+  }, [answers, sectionIndex, q2Other]);
 
   const section = SECTIONS[sectionIndex];
   const isLastSection = sectionIndex === SECTIONS.length - 1;
@@ -213,18 +234,10 @@ export function ProfileSetup() {
 
   const canProceed = () => {
     if (section.id === "kitchen") {
-      return (
-        answers.q1.adults >= 1 &&
-        answers.q3b &&
-        answers.q4.length > 0 &&
-        answers.q5
-      );
+      return answers.q1.adults >= 1 && answers.q4 && answers.q5.length > 0 && answers.q6;
     }
-    if (section.id === "palate") {
-      return answers.q6.trim().length > 0 && answers.q8.length > 0 && answers.q9;
-    }
-    if (section.id === "reality") {
-      return answers.q11.trim().length > 0 && answers.q12;
+    if (section.id === "staples") {
+      return answers.staples.length >= 1 && answers.q8.trim().length > 0 && answers.q9;
     }
     return true;
   };
@@ -237,9 +250,9 @@ export function ProfileSetup() {
 
   const handleNext = () => {
     if (isLastSection) {
-      handleSubmit();
+      void handleSubmit();
     } else {
-      setSectionIndex((i) => i + 1);
+      navigate("/onboarding/staples");
     }
   };
 
@@ -252,6 +265,7 @@ export function ProfileSetup() {
     };
     try {
       const res = await submitOnboarding(payload);
+      clearOnboardingDraft();
       navigate("/onboarding-transition", { state: { chefCard: res.chefCard } });
     } catch {
       setError("Something went wrong. Please try again.");
@@ -260,6 +274,15 @@ export function ProfileSetup() {
     }
   };
 
+  const setStaples = (items: Staple[]) => {
+    update("staples", items);
+  };
+
+  const staplesCount = answers.staples.length;
+  const stapleWord = staplesCount === 1 ? "staple" : "staples";
+  const staplesSummary =
+    staplesCount === 0 ? "Search and add staples" : `${staplesCount} ${stapleWord} selected`;
+
   return (
     <div className="min-h-screen bg-background flex flex-col max-w-[375px] mx-auto">
       <div className="pt-12 pb-6 px-page text-center">
@@ -267,7 +290,7 @@ export function ProfileSetup() {
           melu
         </div>
         <div className="text-[13px] text-muted-foreground mt-1">
-          Step {section.step} of 4
+          Step {section.step} of 2
         </div>
       </div>
 
@@ -329,36 +352,35 @@ export function ProfileSetup() {
               <p className="text-[15px] text-foreground mb-3">
                 How much does nutrition factor into what you cook?
               </p>
-              <SingleSelect options={Q3B_OPTIONS} value={answers.q3b} onChange={(v) => update("q3b", v)} />
+              <SingleSelect options={Q4_OPTIONS} value={answers.q4} onChange={(v) => update("q4", v)} />
             </div>
 
             <div>
               <p className="text-[15px] text-foreground mb-3">What&apos;s in your kitchen?</p>
-              <MultiSelect options={Q4_OPTIONS} value={answers.q4} onChange={(v) => update("q4", v)} />
+              <MultiSelect options={Q5_OPTIONS} value={answers.q5} onChange={(v) => update("q5", v)} />
             </div>
 
             <div>
               <p className="text-[15px] text-foreground mb-3">
                 On a typical weeknight, how much time do you actually have to cook?
               </p>
-              <SingleSelect options={Q5_OPTIONS} value={answers.q5} onChange={(v) => update("q5", v)} />
+              <SingleSelect options={Q6_OPTIONS} value={answers.q6} onChange={(v) => update("q6", v)} />
             </div>
           </div>
         )}
 
-        {section.id === "palate" && (
+        {section.id === "staples" && (
           <div className="space-y-8">
             <div>
-              <p className="text-[15px] text-foreground mb-3">
-                Name 3–5 dinners your family already loves.
-              </p>
-              <input
-                type="text"
-                placeholder="Tacos, spaghetti, grilled chicken..."
-                value={answers.q6}
-                onChange={(e) => update("q6", e.target.value)}
-                className="w-full bg-secondary rounded-2xl px-4 py-3 text-[15px] placeholder:text-muted-foreground outline-none border border-border"
-              />
+              <p className="text-[15px] text-foreground mb-3">What are your dinner staples?</p>
+              <button
+                type="button"
+                onClick={() => setStaplesOpen(true)}
+                className="w-full text-left rounded-2xl border border-border bg-card px-4 py-4 shadow-sm"
+              >
+                <span className="text-[15px] text-foreground block">{staplesSummary}</span>
+                <span className="text-[13px] text-muted-foreground mt-1 block">Tap to add or edit</span>
+              </button>
             </div>
 
             <div>
@@ -368,15 +390,10 @@ export function ProfileSetup() {
               <input
                 type="text"
                 placeholder="Thai curry, homemade ramen, beef Wellington..."
-                value={answers.q7}
-                onChange={(e) => update("q7", e.target.value)}
+                value={answers.q8}
+                onChange={(e) => update("q8", e.target.value)}
                 className="w-full bg-secondary rounded-2xl px-4 py-3 text-[15px] placeholder:text-muted-foreground outline-none border border-border"
               />
-            </div>
-
-            <div>
-              <p className="text-[15px] text-foreground mb-3">Pick the flavors that feel like home.</p>
-              <MultiSelect options={Q8_OPTIONS} value={answers.q8} onChange={(v) => update("q8", v)} />
             </div>
 
             <div>
@@ -384,59 +401,6 @@ export function ProfileSetup() {
                 How adventurous do you want your plan to be?
               </p>
               <SingleSelect options={Q9_OPTIONS} value={answers.q9} onChange={(v) => update("q9", v)} />
-            </div>
-
-            <div>
-              <p className="text-[15px] text-foreground mb-3">
-                Anything your family absolutely will not eat?
-              </p>
-              <input
-                type="text"
-                placeholder="Mushrooms, fish, anything too spicy..."
-                value={answers.q10}
-                onChange={(e) => update("q10", e.target.value)}
-                className="w-full bg-secondary rounded-2xl px-4 py-3 text-[15px] placeholder:text-muted-foreground outline-none border border-border"
-              />
-            </div>
-
-          </div>
-        )}
-
-        {section.id === "reality" && (
-          <div className="space-y-8">
-            <div>
-              <p className="text-[15px] text-foreground mb-3">
-                On a chaos night — soccer, long day, everyone&apos;s tired — what dish do you actually
-                make or grab?
-              </p>
-              <input
-                type="text"
-                placeholder="e.g. cereal, takeout pizza, scrambled eggs..."
-                value={answers.q11}
-                onChange={(e) => update("q11", e.target.value)}
-                className="w-full bg-secondary rounded-2xl px-4 py-3 text-[15px] placeholder:text-muted-foreground outline-none border border-border"
-              />
-            </div>
-
-            <div>
-              <p className="text-[15px] text-foreground mb-3">What matters more to you right now?</p>
-              <SingleSelect options={Q12_OPTIONS} value={answers.q12} onChange={(v) => update("q12", v)} />
-            </div>
-
-            <div>
-              <p className="text-[15px] text-foreground mb-3">Are any nights off-limits? (optional)</p>
-              <MultiSelect
-                options={DAYS.map((d) => ({ value: d.toLowerCase(), label: d }))}
-                value={answers.q13?.days || []}
-                onChange={(v) => update("q13", { ...answers.q13!, days: v })}
-              />
-              <input
-                type="text"
-                placeholder="e.g. Friday — pizza night"
-                value={answers.q13?.note || ""}
-                onChange={(e) => update("q13", { ...answers.q13!, note: e.target.value })}
-                className="mt-3 w-full bg-secondary rounded-full px-4 py-3 text-[15px] placeholder:text-muted-foreground outline-none border border-border"
-              />
             </div>
           </div>
         )}
@@ -446,10 +410,19 @@ export function ProfileSetup() {
         )}
       </div>
 
+      <StaplesSearchOverlay
+        open={staplesOpen}
+        onOpenChange={setStaplesOpen}
+        selected={answers.staples}
+        onConfirm={setStaples}
+      />
+
       <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border px-page py-4 max-w-[375px] mx-auto flex items-center justify-between">
         <button
           type="button"
-          onClick={() => setSectionIndex((i) => Math.max(0, i - 1))}
+          onClick={() => {
+            if (sectionIndex === 1) navigate("/onboarding");
+          }}
           disabled={sectionIndex === 0}
           className="flex items-center gap-1 text-muted-foreground disabled:opacity-40"
         >
