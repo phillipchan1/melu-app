@@ -86,12 +86,12 @@ export interface OnboardingAnswers {
   q5: string[];
   /** Q6 — weeknight cook time */
   q6: string;
-  /** Q7 — dinner staples (canonical) */
+  /** Q7 — dinner staples / rotation (canonical) */
   staples: Staple[];
-  /** Q8 — aspiration (only free-text question) */
-  q8: string;
-  /** Q9 — adventure dial 1–5 */
-  q9: string;
+  /** Wishlist meals from library (onboarding step 3) */
+  aspirations: Staple[];
+  /** 1–5 — how often Melu introduces aspiration vs rotation (default 2 = Mostly familiar) */
+  discoveryPace: number;
 }
 
 export interface ChefCardComparison {
@@ -106,7 +106,12 @@ export interface ChefCard {
   tagline: string;
   comparisons: ChefCardComparison[];
   dimensionScores: Record<string, number>;
+  /** @deprecated Prefer rotationCuisineTags from server */
   cuisineTags: string[];
+  /** Top 3 cuisines from rotation user_meals (Zone 1) */
+  rotationCuisineTags?: string[];
+  /** Up to 2 aspiration meal display names (Zone 2) */
+  aspirationMeals?: string[];
 }
 
 export interface OnboardingSubmitResponse {
@@ -148,6 +153,9 @@ export interface Meal {
   difficulty: 'easy' | 'medium' | 'hard';
   ingredients: string[];
   reasonTag: string;
+  /** Catalog meal id when from rotation library */
+  mealId?: string;
+  sourceType?: 'rotation' | 'aspiration';
 }
 
 export interface Plan {

@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import type { ChefCard } from "../lib/api";
 import { generatePlan } from "../lib/api";
 
 import { ChefCard as ChefCardComponent, ScreenShell } from "../components/design-system";
-import { Button } from "../components/ui/button";
+
+const AUTO_ADVANCE_MS = 4000;
 
 export function OnboardingTransition() {
   const navigate = useNavigate();
@@ -13,25 +14,44 @@ export function OnboardingTransition() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const didAdvance = useRef(false);
 
-  const handleBuildPlan = async () => {
+  const goToPlan = useCallback(async () => {
+    if (didAdvance.current) return;
+    didAdvance.current = true;
     setLoading(true);
     setError(null);
     try {
       const plan = await generatePlan();
       navigate("/plan", { state: { plan } });
     } catch (err) {
+      didAdvance.current = false;
       setError(err instanceof Error ? err.message : "Failed to generate plan");
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!chefCard) return;
+    const t = globalThis.setTimeout(() => {
+      void goToPlan();
+    }, AUTO_ADVANCE_MS);
+    return () => globalThis.clearTimeout(t);
+  }, [chefCard, goToPlan]);
 
   return (
     <ScreenShell className="flex flex-col items-center pt-12 pb-12">
       {chefCard ? (
         <>
-          <ChefCardComponent card={chefCard} />
+          <button
+            type="button"
+            onClick={() => void goToPlan()}
+            disabled={loading}
+            className="cursor-pointer border-0 bg-transparent p-0 text-left disabled:opacity-60"
+          >
+            <ChefCardComponent card={chefCard} />
+          </button>
           <p className="mt-6 text-[15px] text-muted-foreground text-center max-w-xs">
             Your plans get smarter the more you use{"\u00A0"}Melu.
           </p>
@@ -65,22 +85,18 @@ export function OnboardingTransition() {
       )}
 
       {error && (
-        <div className="flex flex-col items-center gap-3 mb-4">
+        <div className="flex flex-col items-center gap-3 mb-4 mt-4">
           <p className="text-sm text-destructive text-center max-w-xs">{error}</p>
-          <Button variant="outline" size="sm" onClick={handleBuildPlan} disabled={loading}>
+          <button
+            type="button"
+            className="text-sm text-primary font-medium"
+            onClick={() => void goToPlan()}
+            disabled={loading}
+          >
             Retry
-          </Button>
+          </button>
         </div>
       )}
-
-      <Button
-        variant="melu"
-        onClick={handleBuildPlan}
-        disabled={loading}
-        className="mt-auto"
-      >
-        {loading ? "Building your plan…" : "Build my first plan"}
-      </Button>
     </ScreenShell>
   );
 }

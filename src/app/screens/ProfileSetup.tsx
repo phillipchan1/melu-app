@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
-import { StaplesSearchOverlay } from "../components/StaplesSearchOverlay";
+import { MealSelector, StaplesSearchOverlay } from "../components/StaplesSearchOverlay";
 import { type OnboardingAnswers, type Staple, submitOnboarding } from "../lib/api";
 import {
   clearOnboardingDraft,
@@ -9,9 +9,22 @@ import {
   saveOnboardingDraft,
 } from "../lib/onboardingDraft";
 
+/** Shown under "Step 1 of 3" only; steps 2–3 use no step-indicator subtitle. */
+const STEP_1_INDICATOR_SUBTITLE = "Basic info";
+
 const SECTIONS = [
-  { id: "kitchen", title: "Your Kitchen", step: 1 },
-  { id: "staples", title: "Your Staples", step: 2 },
+  {
+    id: "kitchen" as const,
+    kicker: "First up",
+    headline: "Let's get the basics down",
+    subtitle: "Household, diet, and what you can really cook on a weeknight.",
+  },
+  {
+    id: "staples" as const,
+    kicker: "Next up",
+    headline: "What does your family already love?",
+    subtitle: "These anchor every plan.",
+  },
 ] as const;
 
 const Q2_OPTIONS = [
@@ -48,7 +61,7 @@ const Q5_OPTIONS = [
   { value: "instant_pot", label: "Instant pot" },
   { value: "slow_cooker", label: "Slow cooker" },
   { value: "grill", label: "Grill" },
-  { value: "microwave_only", label: "Microwave only" },
+  { value: "microwave_only", label: "Microwave" },
 ];
 
 const Q6_OPTIONS = [
@@ -58,13 +71,14 @@ const Q6_OPTIONS = [
   { value: "60_plus", label: "60+ min" },
 ];
 
-const Q9_OPTIONS = [
-  { value: "1", label: "Stick to what we know" },
-  { value: "2", label: "Mostly familiar" },
-  { value: "3", label: "Mix it up" },
-  { value: "4", label: "Push us a little" },
-  { value: "5", label: "Surprise us" },
-];
+/** Pace dial: value 1–5 left to right */
+const PACE_OPTIONS = [
+  { value: 1, label: "Keep it familiar" },
+  { value: 2, label: "Mostly familiar" },
+  { value: 3, label: "Mix it up" },
+  { value: 4, label: "Push a little" },
+  { value: 5, label: "Surprise us" },
+] as const;
 
 const KID_AGE_OPTIONS = ["toddler", "elementary", "teen"];
 
@@ -76,8 +90,8 @@ const defaultAnswers: OnboardingAnswers = {
   q5: [],
   q6: "",
   staples: [],
-  q8: "",
-  q9: "",
+  aspirations: [],
+  discoveryPace: 2,
 };
 
 function MultiSelect({
@@ -179,6 +193,127 @@ function Stepper({
   );
 }
 
+type BasicInfoSummaryRow = { id: string; label: string; value: string };
+
+function optionLabel(options: readonly { value: string; label: string }[], value: string): string {
+  return options.find((o) => o.value === value)?.label ?? value;
+}
+
+function formatKidAgeChip(age: string): string {
+  if (age === "toddler") return "Toddler";
+  if (age === "elementary") return "Elementary";
+  if (age === "teen") return "Teen";
+  return age.charAt(0).toUpperCase() + age.slice(1);
+}
+
+function buildStep1SummaryRows(answers: OnboardingAnswers, q2OtherTrimmed: string): BasicInfoSummaryRow[] {
+  const rows: BasicInfoSummaryRow[] = [];
+  const { adults, kids, kidAges = [] } = answers.q1;
+
+  const showCooking = adults !== 2 || kids !== 0 || kidAges.length > 0;
+
+  if (showCooking) {
+    rows.push({
+      id: "cooking",
+      label: "Cooking for",
+      value: `${adults} adults, ${kids} kids`,
+    });
+  }
+
+  if (kids > 0 && kidAges.length > 0) {
+    rows.push({
+      id: "kids",
+      label: "Kids",
+      value: kidAges.map(formatKidAgeChip).join(", "),
+    });
+  }
+
+  const allergyParts = [
+    ...answers.q2.map((v) => optionLabel(Q2_OPTIONS, v)),
+    ...(q2OtherTrimmed ? [q2OtherTrimmed] : []),
+  ];
+  if (allergyParts.length > 0) {
+    rows.push({
+      id: "allergies",
+      label: "Allergies",
+      value: allergyParts.join(", "),
+    });
+  }
+
+  if (answers.q3.length > 0) {
+    rows.push({
+      id: "diet",
+      label: "Diet",
+      value: answers.q3.map((v) => optionLabel(Q3_OPTIONS, v)).join(", "),
+    });
+  }
+
+  if (answers.q4) {
+    rows.push({
+      id: "nutrition",
+      label: "Nutrition",
+      value: optionLabel(Q4_OPTIONS, answers.q4),
+    });
+  }
+
+  if (answers.q5.length > 0) {
+    rows.push({
+      id: "kitchen",
+      label: "Kitchen",
+      value: answers.q5.map((v) => optionLabel(Q5_OPTIONS, v)).join(", "),
+    });
+  }
+
+  if (answers.q6) {
+    rows.push({
+      id: "time",
+      label: "Time limit",
+      value: optionLabel(Q6_OPTIONS, answers.q6),
+    });
+  }
+
+  return rows;
+}
+
+/** Same rules as Next enablement on step 1 — must stay in sync with `canProceed` for section 0. */
+function isStep1FormComplete(answers: OnboardingAnswers): boolean {
+  return answers.q1.adults >= 1 && !!answers.q4 && answers.q5.length > 0 && !!answers.q6;
+}
+
+function Step1MeluLearningPanel({ rows }: Readonly<{ rows: BasicInfoSummaryRow[] }>) {
+  const isEmpty = rows.length === 0;
+
+  return (
+    <aside
+      className="hidden md:flex md:flex-col md:w-[320px] md:shrink-0 md:sticky md:top-20 md:self-start md:rounded-2xl md:border md:border-border md:bg-card md:p-6"
+      aria-live="polite"
+    >
+      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-4">
+        What Melu is learning
+      </p>
+      {isEmpty ? (
+        <p className="text-center text-[14px] italic text-muted-foreground leading-relaxed">
+          Fill in your details and
+          <br />
+          Melu will start learning.
+        </p>
+      ) : (
+        <ul className="flex flex-col list-none p-0 m-0">
+          {rows.map((row) => (
+            <li
+              key={row.id}
+              className="flex justify-between items-start gap-3 border-b border-border/80 py-2 text-[14px] animate-in fade-in duration-200"
+            >
+              <span className="shrink-0 text-muted-foreground mr-3">{row.label}</span>
+              <span className="min-w-0 text-right text-foreground">{row.value}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </aside>
+  );
+}
+
 function getInitialOnboardingState() {
   const draft = loadOnboardingDraft(defaultAnswers);
   if (!draft) {
@@ -196,7 +331,17 @@ function getInitialOnboardingState() {
 }
 
 function pathToSectionIndex(pathname: string): number {
-  return pathname.endsWith("/onboarding/staples") ? 1 : 0;
+  const parts = pathname.split("/").filter(Boolean);
+  const last = parts.at(-1);
+  if (last === "aspirations" || last === "goals") return 2;
+  if (last === "staples") return 1;
+  return 0;
+}
+
+function pathForSectionIndex(index: number): string {
+  if (index <= 0) return "/onboarding";
+  if (index === 1) return "/onboarding/staples";
+  return "/onboarding/aspirations";
 }
 
 export function ProfileSetup() {
@@ -207,37 +352,41 @@ export function ProfileSetup() {
   const didSyncDraftToUrl = useRef(false);
 
   const sectionIndex = pathToSectionIndex(location.pathname);
-
-  /** Restore draft step 2 before paint; browser back to step 1 must not re-run this. */
-  useLayoutEffect(() => {
-    if (didSyncDraftToUrl.current) return;
-    didSyncDraftToUrl.current = true;
-    if (initial.sectionIndex === 1 && location.pathname === "/onboarding") {
-      navigate("/onboarding/staples", { replace: true });
-    }
-  }, [initial.sectionIndex, location.pathname, navigate]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [q2Other, setQ2Other] = useState(initial.q2Other);
-  const [staplesOpen, setStaplesOpen] = useState(false);
+  /** Restore draft step to URL once on load; browser back must not re-run. */
+  useLayoutEffect(() => {
+    if (didSyncDraftToUrl.current) return;
+    didSyncDraftToUrl.current = true;
+    const target = pathForSectionIndex(initial.sectionIndex);
+    const normalized = location.pathname.replace(/\/$/, "") || "/";
+    const normalizedTarget = target.replace(/\/$/, "") || "/";
+    if (normalized !== normalizedTarget) {
+      navigate(target, { replace: true });
+    }
+  }, [initial.sectionIndex, location.pathname, navigate]);
 
   useEffect(() => {
     saveOnboardingDraft({ answers, sectionIndex, q2Other });
   }, [answers, sectionIndex, q2Other]);
 
-  const section = SECTIONS[sectionIndex];
-  const isLastSection = sectionIndex === SECTIONS.length - 1;
+  const section = SECTIONS[sectionIndex] ?? SECTIONS[0];
+  const isLastSection = sectionIndex === 2;
 
   const update = <K extends keyof OnboardingAnswers>(key: K, value: OnboardingAnswers[K]) => {
     setAnswers((prev) => ({ ...prev, [key]: value }));
   };
 
   const canProceed = () => {
-    if (section.id === "kitchen") {
-      return answers.q1.adults >= 1 && answers.q4 && answers.q5.length > 0 && answers.q6;
+    if (sectionIndex === 0) {
+      return isStep1FormComplete(answers);
     }
-    if (section.id === "staples") {
-      return answers.staples.length >= 1 && answers.q8.trim().length > 0 && answers.q9;
+    if (sectionIndex === 1) {
+      return answers.staples.length >= 1;
+    }
+    if (sectionIndex === 2) {
+      return answers.discoveryPace >= 1 && answers.discoveryPace <= 5;
     }
     return true;
   };
@@ -245,14 +394,21 @@ export function ProfileSetup() {
   const getNextButtonLabel = () => {
     if (isSubmitting) return "Creating your card...";
     if (isLastSection) return "See my Chef Card";
+    if (sectionIndex === 1) return "Continue";
     return "Next";
   };
 
   const handleNext = () => {
     if (isLastSection) {
       void handleSubmit();
-    } else {
+      return;
+    }
+    if (sectionIndex === 0) {
       navigate("/onboarding/staples");
+      return;
+    }
+    if (sectionIndex === 1) {
+      navigate("/onboarding/aspirations");
     }
   };
 
@@ -274,133 +430,197 @@ export function ProfileSetup() {
     }
   };
 
-  const setStaples = (items: Staple[]) => {
+  const handleStaplesConfirmed = (items: Staple[]) => {
     update("staples", items);
+    navigate("/onboarding/aspirations");
   };
 
-  const staplesCount = answers.staples.length;
-  const stapleWord = staplesCount === 1 ? "staple" : "staples";
-  const staplesSummary =
-    staplesCount === 0 ? "Search and add staples" : `${staplesCount} ${stapleWord} selected`;
+  const handleAspirationsConfirmed = (items: Staple[]) => {
+    update("aspirations", items);
+  };
+
+  const stepNumber = sectionIndex + 1;
+  const wideOnboardingStep = sectionIndex === 1 || sectionIndex === 2;
+  /** Step 1 content uses 960px; bottom bar matches staples/aspirations (1200 cap) on desktop. */
+  const wideDesktopBottomBar = sectionIndex === 0 || wideOnboardingStep;
+
+  const step1SummaryRows = useMemo(
+    () => buildStep1SummaryRows(answers, q2Other.trim()),
+    [answers, q2Other],
+  );
 
   return (
-    <div className="min-h-screen bg-background flex flex-col max-w-[375px] mx-auto">
+    <div
+      className={`min-h-screen bg-background flex flex-col mx-auto ${
+        sectionIndex === 0
+          ? "max-w-[375px] md:max-w-[960px]"
+          : wideOnboardingStep
+            ? "max-w-[375px] md:max-w-[min(100%,1200px)]"
+            : "max-w-[375px]"
+      }`}
+    >
       <div className="pt-12 pb-6 px-page text-center">
         <div className="text-[22px] text-primary font-semibold">
           melu
         </div>
         <div className="text-[13px] text-muted-foreground mt-1">
-          Step {section.step} of 2
+          Step {stepNumber} of 3
         </div>
+        {sectionIndex === 0 ? (
+          <div className="text-[15px] text-foreground font-medium mt-1">{STEP_1_INDICATOR_SUBTITLE}</div>
+        ) : null}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-page pb-32">
-        <h2 className="text-[17px] text-foreground mb-6 font-semibold">
-          {section.title}
-        </h2>
+      <div
+        className={`flex-1 pb-32 min-h-0 ${
+          sectionIndex === 0 ? "px-page md:px-8" : "px-page"
+        } ${sectionIndex === 1 || sectionIndex === 2 ? "flex flex-col overflow-hidden" : "overflow-y-auto"}`}
+      >
+        {sectionIndex < 2 && sectionIndex !== 1 && (
+          <>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-1">
+              {section.kicker}
+            </p>
+            <h2 className="text-[20px] text-foreground mb-2 font-semibold leading-snug">{section.headline}</h2>
+            <p className="text-[14px] text-muted-foreground mb-6 leading-relaxed">{section.subtitle}</p>
+          </>
+        )}
 
-        {section.id === "kitchen" && (
-          <div className="space-y-8">
-            <div>
-              <p className="text-[15px] text-foreground mb-3">Who are you feeding?</p>
-              <div className="space-y-4 bg-card rounded-2xl p-5 shadow-sm">
-                <Stepper
-                  label="Adults"
-                  value={answers.q1.adults}
-                  min={1}
-                  max={8}
-                  onChange={(v) => update("q1", { ...answers.q1, adults: v })}
+        {sectionIndex === 1 && (
+          <>
+            <h2 className="text-[20px] text-foreground mb-2 font-semibold leading-snug">{section.headline}</h2>
+            <p className="text-[14px] text-muted-foreground mb-4 leading-relaxed">{section.subtitle}</p>
+            <StaplesSearchOverlay
+              embedded
+              open
+              onOpenChange={() => {}}
+              selected={answers.staples}
+              onSelectionChange={(items) => update("staples", items)}
+              onConfirm={handleStaplesConfirmed}
+              mode="staples"
+            />
+          </>
+        )}
+
+        {sectionIndex === 0 && (
+          <div className="md:grid md:grid-cols-[1fr_320px] md:gap-12 md:items-start md:min-w-0">
+            <div className="space-y-8 min-w-0">
+              <div>
+                <p className="text-[15px] text-foreground mb-3">Who are you feeding?</p>
+                <div className="space-y-4 bg-card rounded-2xl p-5 shadow-sm">
+                  <Stepper
+                    label="Adults"
+                    value={answers.q1.adults}
+                    min={1}
+                    max={8}
+                    onChange={(v) => update("q1", { ...answers.q1, adults: v })}
+                  />
+                  <Stepper
+                    label="Kids"
+                    value={answers.q1.kids}
+                    min={0}
+                    max={8}
+                    onChange={(v) => update("q1", { ...answers.q1, kids: v })}
+                  />
+                  {answers.q1.kids > 0 && (
+                    <div>
+                      <p className="text-[14px] text-muted-foreground mb-2">Kid ages (optional)</p>
+                      <MultiSelect
+                        options={KID_AGE_OPTIONS.map((a) => ({ value: a, label: a }))}
+                        value={answers.q1.kidAges || []}
+                        onChange={(v) => update("q1", { ...answers.q1, kidAges: v })}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[15px] text-foreground mb-3">Any allergies or intolerances?</p>
+                <MultiSelect options={Q2_OPTIONS} value={answers.q2} onChange={(v) => update("q2", v)} />
+                <input
+                  type="text"
+                  placeholder="Other (e.g. sesame)"
+                  value={q2Other}
+                  onChange={(e) => setQ2Other(e.target.value)}
+                  className="mt-3 w-full bg-secondary rounded-full px-4 py-3 text-[15px] placeholder:text-muted-foreground outline-none border border-border"
                 />
-                <Stepper
-                  label="Kids"
-                  value={answers.q1.kids}
-                  min={0}
-                  max={8}
-                  onChange={(v) => update("q1", { ...answers.q1, kids: v })}
-                />
-                {answers.q1.kids > 0 && (
-                  <div>
-                    <p className="text-[14px] text-muted-foreground mb-2">Kid ages (optional)</p>
-                    <MultiSelect
-                      options={KID_AGE_OPTIONS.map((a) => ({ value: a, label: a }))}
-                      value={answers.q1.kidAges || []}
-                      onChange={(v) => update("q1", { ...answers.q1, kidAges: v })}
-                    />
-                  </div>
-                )}
+              </div>
+
+              <div>
+                <p className="text-[15px] text-foreground mb-3">Any dietary restrictions?</p>
+                <MultiSelect options={Q3_OPTIONS} value={answers.q3} onChange={(v) => update("q3", v)} />
+              </div>
+
+              <div>
+                <p className="text-[15px] text-foreground mb-3">
+                  How much does nutrition factor into what you cook?
+                </p>
+                <SingleSelect options={Q4_OPTIONS} value={answers.q4} onChange={(v) => update("q4", v)} />
+              </div>
+
+              <div>
+                <p className="text-[15px] text-foreground mb-3">What&apos;s in your kitchen?</p>
+                <MultiSelect options={Q5_OPTIONS} value={answers.q5} onChange={(v) => update("q5", v)} />
+              </div>
+
+              <div>
+                <p className="text-[15px] text-foreground mb-3">
+                  On a typical weeknight, how much time do you actually have to cook?
+                </p>
+                <SingleSelect options={Q6_OPTIONS} value={answers.q6} onChange={(v) => update("q6", v)} />
               </div>
             </div>
-
-            <div>
-              <p className="text-[15px] text-foreground mb-3">Any allergies or intolerances?</p>
-              <MultiSelect options={Q2_OPTIONS} value={answers.q2} onChange={(v) => update("q2", v)} />
-              <input
-                type="text"
-                placeholder="Other (e.g. sesame)"
-                value={q2Other}
-                onChange={(e) => setQ2Other(e.target.value)}
-                className="mt-3 w-full bg-secondary rounded-full px-4 py-3 text-[15px] placeholder:text-muted-foreground outline-none border border-border"
-              />
-            </div>
-
-            <div>
-              <p className="text-[15px] text-foreground mb-3">Any dietary restrictions?</p>
-              <MultiSelect options={Q3_OPTIONS} value={answers.q3} onChange={(v) => update("q3", v)} />
-            </div>
-
-            <div>
-              <p className="text-[15px] text-foreground mb-3">
-                How much does nutrition factor into what you cook?
-              </p>
-              <SingleSelect options={Q4_OPTIONS} value={answers.q4} onChange={(v) => update("q4", v)} />
-            </div>
-
-            <div>
-              <p className="text-[15px] text-foreground mb-3">What&apos;s in your kitchen?</p>
-              <MultiSelect options={Q5_OPTIONS} value={answers.q5} onChange={(v) => update("q5", v)} />
-            </div>
-
-            <div>
-              <p className="text-[15px] text-foreground mb-3">
-                On a typical weeknight, how much time do you actually have to cook?
-              </p>
-              <SingleSelect options={Q6_OPTIONS} value={answers.q6} onChange={(v) => update("q6", v)} />
-            </div>
+            <Step1MeluLearningPanel rows={step1SummaryRows} />
           </div>
         )}
 
-        {section.id === "staples" && (
-          <div className="space-y-8">
-            <div>
-              <p className="text-[15px] text-foreground mb-3">What are your dinner staples?</p>
-              <button
-                type="button"
-                onClick={() => setStaplesOpen(true)}
-                className="w-full text-left rounded-2xl border border-border bg-card px-4 py-4 shadow-sm"
-              >
-                <span className="text-[15px] text-foreground block">{staplesSummary}</span>
-                <span className="text-[13px] text-muted-foreground mt-1 block">Tap to add or edit</span>
-              </button>
-            </div>
-
-            <div>
-              <p className="text-[15px] text-foreground mb-3">
-                What&apos;s one thing you&apos;ve always wanted to cook but never have?
+        {sectionIndex === 2 && (
+          <div className="space-y-10 flex flex-col flex-1 min-h-0">
+            <div className="flex flex-col flex-1 min-h-0">
+              <h2 className="text-[20px] text-foreground mb-2 font-semibold leading-snug">
+                Dream a little.
+              </h2>
+              <p className="text-[14px] text-muted-foreground mb-4 leading-relaxed">
+                Pick meals you want to learn — Melu will get you there.
               </p>
-              <input
-                type="text"
-                placeholder="Thai curry, homemade ramen, beef Wellington..."
-                value={answers.q8}
-                onChange={(e) => update("q8", e.target.value)}
-                className="w-full bg-secondary rounded-2xl px-4 py-3 text-[15px] placeholder:text-muted-foreground outline-none border border-border"
+              <MealSelector
+                embedded
+                open
+                onOpenChange={() => {}}
+                mode="aspirations"
+                rotationStaples={answers.staples}
+                selected={answers.aspirations}
+                onSelectionChange={(items) => update("aspirations", items)}
+                onConfirm={handleAspirationsConfirmed}
               />
             </div>
 
-            <div>
-              <p className="text-[15px] text-foreground mb-3">
-                How adventurous do you want your plan to be?
+            <div className="border-t border-border pt-8 shrink-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-1">
+                Your pace
               </p>
-              <SingleSelect options={Q9_OPTIONS} value={answers.q9} onChange={(v) => update("q9", v)} />
+              <p className="text-[15px] text-foreground mb-1 font-medium">How fast do you want to get there?</p>
+              <p className="text-[14px] text-muted-foreground mb-4 leading-relaxed">
+                This controls how often Melu introduces something new vs. sticking to what you know.
+              </p>
+              <div className="flex flex-row gap-2 w-full">
+                {PACE_OPTIONS.map((o) => {
+                  const selected = answers.discoveryPace === o.value;
+                  return (
+                    <button
+                      key={o.value}
+                      type="button"
+                      onClick={() => update("discoveryPace", o.value)}
+                      className={`flex-1 min-w-0 rounded-xl px-2 py-3 text-center text-[13px] leading-[1.3] font-medium cursor-pointer transition-colors ${
+                        selected ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground border border-border"
+                      }`}
+                    >
+                      {o.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
@@ -410,18 +630,16 @@ export function ProfileSetup() {
         )}
       </div>
 
-      <StaplesSearchOverlay
-        open={staplesOpen}
-        onOpenChange={setStaplesOpen}
-        selected={answers.staples}
-        onConfirm={setStaples}
-      />
-
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border px-page py-4 max-w-[375px] mx-auto flex items-center justify-between">
+      <div
+        className={`fixed bottom-0 left-0 right-0 bg-background border-t border-border px-page py-4 mx-auto flex items-center justify-between ${
+          wideDesktopBottomBar ? "max-w-[375px] md:max-w-[min(100%,1200px)]" : "max-w-[375px]"
+        }`}
+      >
         <button
           type="button"
           onClick={() => {
-            if (sectionIndex === 1) navigate("/onboarding");
+            if (sectionIndex === 2) navigate("/onboarding/staples");
+            else if (sectionIndex === 1) navigate("/onboarding");
           }}
           disabled={sectionIndex === 0}
           className="flex items-center gap-1 text-muted-foreground disabled:opacity-40"

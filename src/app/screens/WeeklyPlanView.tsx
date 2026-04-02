@@ -31,7 +31,7 @@ function mealToCardProps(meal: Meal, weekStart?: string) {
     time: `${meal.cookTime} min`,
     cuisine: meal.cuisine,
     ingredients: Array.isArray(meal.ingredients) ? meal.ingredients.join(", ") : "",
-    reason: meal.reasonTag,
+    reason: meal.reasonTag ?? "",
   };
 }
 

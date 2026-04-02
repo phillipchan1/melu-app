@@ -1,4 +1,4 @@
-import { createBrowserRouter, Outlet } from "react-router";
+import { createBrowserRouter, Navigate, Outlet } from "react-router";
 import { SplashScreen } from "./screens/SplashScreen";
 import { ProfileSetup } from "./screens/ProfileSetup";
 import { OnboardingTransition } from "./screens/OnboardingTransition";
@@ -21,6 +21,14 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, Component: SplashScreen },
+      {
+        path: "onboarding/aspirations",
+        Component: ProfileSetup,
+      },
+      {
+        path: "onboarding/goals",
+        element: <Navigate to="/onboarding/aspirations" replace />,
+      },
       {
         path: "onboarding/staples",
         Component: ProfileSetup,
