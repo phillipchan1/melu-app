@@ -1,65 +1,2184 @@
 [
-  {"id": "tacos", "name": "Tacos", "cuisine": "Mexican", "complexityTier": "simple", "aliases": ["taco", "street tacos"]},
-  {"id": "enchiladas", "name": "Enchiladas", "cuisine": "Mexican", "complexityTier": "moderate", "aliases": []},
-  {"id": "burrito-bowl", "name": "Burrito bowl", "cuisine": "Mexican", "complexityTier": "simple", "aliases": ["chipotle bowl"]},
-  {"id": "quesadillas", "name": "Quesadillas", "cuisine": "Mexican", "complexityTier": "simple", "aliases": []},
-  {"id": "spaghetti-marinara", "name": "Spaghetti marinara", "cuisine": "Italian", "complexityTier": "simple", "aliases": ["pasta", "spaghetti", "red sauce pasta"]},
-  {"id": "penne-arrabbiata", "name": "Penne arrabbiata", "cuisine": "Italian", "complexityTier": "moderate", "aliases": ["arrabbiata"]},
-  {"id": "cacio-e-pepe", "name": "Cacio e pepe", "cuisine": "Italian", "complexityTier": "moderate", "aliases": []},
-  {"id": "chicken-parm", "name": "Chicken parmesan", "cuisine": "Italian", "complexityTier": "moderate", "aliases": ["chicken parm"]},
-  {"id": "lasagna", "name": "Lasagna", "cuisine": "Italian", "complexityTier": "complex", "aliases": []},
-  {"id": "pizza-homemade", "name": "Homemade pizza", "cuisine": "Italian", "complexityTier": "moderate", "aliases": ["pizza"]},
-  {"id": "grilled-cheese", "name": "Grilled cheese", "cuisine": "American", "complexityTier": "simple", "aliases": []},
-  {"id": "burgers", "name": "Burgers", "cuisine": "American", "complexityTier": "simple", "aliases": ["cheeseburger"]},
-  {"id": "mac-cheese", "name": "Mac and cheese", "cuisine": "American", "complexityTier": "simple", "aliases": ["macaroni"]},
-  {"id": "fried-chicken", "name": "Fried chicken", "cuisine": "American", "complexityTier": "moderate", "aliases": []},
-  {"id": "bbq-ribs", "name": "BBQ ribs", "cuisine": "American", "complexityTier": "complex", "aliases": ["ribs"]},
-  {"id": "meatloaf", "name": "Meatloaf", "cuisine": "American", "complexityTier": "moderate", "aliases": []},
-  {"id": "pot-roast", "name": "Pot roast", "cuisine": "American", "complexityTier": "complex", "aliases": []},
-  {"id": "salmon-baked", "name": "Baked salmon", "cuisine": "American", "complexityTier": "simple", "aliases": ["salmon"]},
-  {"id": "tuna-casserole", "name": "Tuna casserole", "cuisine": "American", "complexityTier": "simple", "aliases": []},
-  {"id": "stir-fry", "name": "Chicken stir-fry", "cuisine": "Asian", "complexityTier": "simple", "aliases": ["stir fry"]},
-  {"id": "fried-rice", "name": "Fried rice", "cuisine": "Asian", "complexityTier": "simple", "aliases": []},
-  {"id": "teriyaki-chicken", "name": "Teriyaki chicken", "cuisine": "Asian", "complexityTier": "simple", "aliases": ["teriyaki"]},
-  {"id": "beef-broccoli", "name": "Beef and broccoli", "cuisine": "Asian", "complexityTier": "moderate", "aliases": []},
-  {"id": "pad-thai", "name": "Pad Thai", "cuisine": "Asian", "complexityTier": "moderate", "aliases": ["thai noodles"]},
-  {"id": "thai-green-curry", "name": "Thai green curry", "cuisine": "Asian", "complexityTier": "moderate", "aliases": ["green curry", "thai curry"]},
-  {"id": "ramen", "name": "Ramen", "cuisine": "Asian", "complexityTier": "moderate", "aliases": ["tonkatsu ramen"]},
-  {"id": "sushi-night", "name": "Sushi night", "cuisine": "Asian", "complexityTier": "complex", "aliases": ["sushi"]},
-  {"id": "bibimbap", "name": "Bibimbap", "cuisine": "Asian", "complexityTier": "moderate", "aliases": ["korean rice bowl"]},
-  {"id": "korean-bbq", "name": "Korean BBQ", "cuisine": "Asian", "complexityTier": "moderate", "aliases": ["bulgogi"]},
-  {"id": "butter-chicken", "name": "Butter chicken", "cuisine": "Indian", "complexityTier": "moderate", "aliases": ["murgh makhani"]},
-  {"id": "chicken-tikka", "name": "Chicken tikka masala", "cuisine": "Indian", "complexityTier": "moderate", "aliases": ["tikka"]},
-  {"id": "dal", "name": "Dal with rice", "cuisine": "Indian", "complexityTier": "simple", "aliases": ["lentil curry"]},
-  {"id": "chana-masala", "name": "Chana masala", "cuisine": "Indian", "complexityTier": "moderate", "aliases": ["chickpea curry"]},
-  {"id": "falafel-bowl", "name": "Falafel bowl", "cuisine": "Middle Eastern", "complexityTier": "moderate", "aliases": ["falafel"]},
-  {"id": "shawarma", "name": "Chicken shawarma", "cuisine": "Middle Eastern", "complexityTier": "moderate", "aliases": []},
-  {"id": "greek-salad", "name": "Greek salad with chicken", "cuisine": "Greek", "complexityTier": "simple", "aliases": []},
-  {"id": "moussaka", "name": "Moussaka", "cuisine": "Greek", "complexityTier": "complex", "aliases": []},
-  {"id": "fish-tacos", "name": "Fish tacos", "cuisine": "Mexican", "complexityTier": "simple", "aliases": []},
-  {"id": "carnitas", "name": "Carnitas", "cuisine": "Mexican", "complexityTier": "complex", "aliases": []},
-  {"id": "fajitas", "name": "Chicken fajitas", "cuisine": "Mexican", "complexityTier": "simple", "aliases": ["fajita"]},
-  {"id": "chili", "name": "Chili", "cuisine": "American", "complexityTier": "moderate", "aliases": ["chili con carne"]},
-  {"id": "soup-sandwich", "name": "Soup and sandwich", "cuisine": "American", "complexityTier": "simple", "aliases": ["tomato soup"]},
-  {"id": "breakfast-dinner", "name": "Breakfast for dinner", "cuisine": "American", "complexityTier": "simple", "aliases": ["brinner", "pancakes", "waffles"]},
-  {"id": "sheet-pan-chicken", "name": "Sheet pan chicken and veggies", "cuisine": "Mediterranean", "complexityTier": "simple", "aliases": ["sheet pan"]},
-  {"id": "med-bowl", "name": "Mediterranean grain bowl", "cuisine": "Mediterranean", "complexityTier": "simple", "aliases": ["grain bowl"]},
-  {"id": "salmon-pesto", "name": "Salmon with pesto", "cuisine": "Mediterranean", "complexityTier": "moderate", "aliases": []},
-  {"id": "roast-chicken", "name": "Roast chicken", "cuisine": "French", "complexityTier": "moderate", "aliases": ["whole chicken"]},
-  {"id": "coq-au-vin", "name": "Coq au vin", "cuisine": "French", "complexityTier": "complex", "aliases": []},
-  {"id": "steak-frites", "name": "Steak frites", "cuisine": "French", "complexityTier": "moderate", "aliases": ["steak"]},
-  {"id": "pho", "name": "Pho", "cuisine": "Asian", "complexityTier": "moderate", "aliases": ["vietnamese soup"]},
-  {"id": "banh-mi", "name": "Banh mi bowls", "cuisine": "Asian", "complexityTier": "simple", "aliases": []},
-  {"id": "jambalaya", "name": "Jambalaya", "cuisine": "American", "complexityTier": "moderate", "aliases": ["cajun"]},
-  {"id": "gumbo", "name": "Gumbo", "cuisine": "American", "complexityTier": "complex", "aliases": []},
-  {"id": "tofu-stirfry", "name": "Tofu stir-fry", "cuisine": "Asian", "complexityTier": "simple", "aliases": ["tofu"]},
-  {"id": "veggie-tacos", "name": "Veggie tacos", "cuisine": "Mexican", "complexityTier": "simple", "aliases": []},
-  {"id": "caesar-salad", "name": "Caesar salad with protein", "cuisine": "American", "complexityTier": "simple", "aliases": ["caesar"]},
-  {"id": "cobb-salad", "name": "Cobb salad", "cuisine": "American", "complexityTier": "simple", "aliases": []},
-  {"id": "hot-dogs", "name": "Hot dogs and sides", "cuisine": "American", "complexityTier": "simple", "aliases": ["franks"]},
-  {"id": "sloppy-joes", "name": "Sloppy Joes", "cuisine": "American", "complexityTier": "simple", "aliases": []},
-  {"id": "shepherds-pie", "name": "Shepherd's pie", "cuisine": "American", "complexityTier": "moderate", "aliases": []},
-  {"id": "tikka-veggie", "name": "Vegetable tikka masala", "cuisine": "Indian", "complexityTier": "moderate", "aliases": []},
-  {"id": "poke-bowl", "name": "Poke bowl", "cuisine": "Asian", "complexityTier": "simple", "aliases": ["poke"]},
-  {"id": "hawaiian-plate", "name": "Hawaiian plate lunch", "cuisine": "American", "complexityTier": "moderate", "aliases": ["loco moco"]}
+  {
+    "id": "tacos",
+    "name": "Tacos",
+    "cuisine": "Mexican",
+    "tier": "top",
+    "aliases": [
+      "taco",
+      "street tacos",
+      "soft tacos"
+    ]
+  },
+  {
+    "id": "burrito-bowl",
+    "name": "Burrito bowl",
+    "cuisine": "Mexican",
+    "tier": "top",
+    "aliases": [
+      "burrito",
+      "chipotle bowl"
+    ]
+  },
+  {
+    "id": "enchiladas",
+    "name": "Enchiladas",
+    "cuisine": "Mexican",
+    "tier": "top",
+    "aliases": [
+      "enchilada"
+    ]
+  },
+  {
+    "id": "quesadillas",
+    "name": "Quesadillas",
+    "cuisine": "Mexican",
+    "tier": "top",
+    "aliases": [
+      "quesadilla",
+      "cheese quesadilla"
+    ]
+  },
+  {
+    "id": "carnitas",
+    "name": "Carnitas",
+    "cuisine": "Mexican",
+    "tier": "top",
+    "aliases": [
+      "pulled pork mexican"
+    ]
+  },
+  {
+    "id": "fajitas",
+    "name": "Fajitas",
+    "cuisine": "Mexican",
+    "tier": "top",
+    "aliases": [
+      "chicken fajitas",
+      "steak fajitas"
+    ]
+  },
+  {
+    "id": "tostadas",
+    "name": "Tostadas",
+    "cuisine": "Mexican",
+    "tier": "top",
+    "aliases": [
+      "crispy tostada"
+    ]
+  },
+  {
+    "id": "chicken-tortilla-soup",
+    "name": "Chicken tortilla soup",
+    "cuisine": "Mexican",
+    "tier": "top",
+    "aliases": [
+      "tortilla soup",
+      "sopa azteca"
+    ]
+  },
+  {
+    "id": "carne-asada",
+    "name": "Carne asada",
+    "cuisine": "Mexican",
+    "tier": "top",
+    "aliases": [
+      "grilled steak mexican",
+      "asada"
+    ]
+  },
+  {
+    "id": "tamales",
+    "name": "Tamales",
+    "cuisine": "Mexican",
+    "tier": "top",
+    "aliases": [
+      "tamal",
+      "corn husk"
+    ]
+  },
+  {
+    "id": "chiles-rellenos",
+    "name": "Chiles rellenos",
+    "cuisine": "Mexican",
+    "tier": "top",
+    "aliases": [
+      "stuffed peppers mexican",
+      "rellenos"
+    ]
+  },
+  {
+    "id": "birria-tacos",
+    "name": "Birria tacos",
+    "cuisine": "Mexican",
+    "tier": "top",
+    "aliases": [
+      "birria",
+      "quesabirria"
+    ]
+  },
+  {
+    "id": "pozole",
+    "name": "Pozole",
+    "cuisine": "Mexican",
+    "tier": "overflow",
+    "aliases": [
+      "posole",
+      "hominy soup"
+    ]
+  },
+  {
+    "id": "albondigas",
+    "name": "Albondigas",
+    "cuisine": "Mexican",
+    "tier": "overflow",
+    "aliases": [
+      "meatball soup",
+      "sopa albondigas"
+    ]
+  },
+  {
+    "id": "sopes",
+    "name": "Sopes",
+    "cuisine": "Mexican",
+    "tier": "overflow",
+    "aliases": [
+      "sope"
+    ]
+  },
+  {
+    "id": "huevos-rancheros",
+    "name": "Huevos rancheros",
+    "cuisine": "Mexican",
+    "tier": "overflow",
+    "aliases": [
+      "ranch eggs"
+    ]
+  },
+  {
+    "id": "chilaquiles",
+    "name": "Chilaquiles",
+    "cuisine": "Mexican",
+    "tier": "overflow",
+    "aliases": [
+      "fried tortilla breakfast"
+    ]
+  },
+  {
+    "id": "flautas",
+    "name": "Flautas",
+    "cuisine": "Mexican",
+    "tier": "overflow",
+    "aliases": [
+      "taquitos"
+    ]
+  },
+  {
+    "id": "elote",
+    "name": "Elote",
+    "cuisine": "Mexican",
+    "tier": "overflow",
+    "aliases": [
+      "mexican corn",
+      "street corn"
+    ]
+  },
+  {
+    "id": "menudo",
+    "name": "Menudo",
+    "cuisine": "Mexican",
+    "tier": "overflow",
+    "aliases": [
+      "tripe soup"
+    ]
+  },
+  {
+    "id": "spaghetti-marinara",
+    "name": "Spaghetti marinara",
+    "cuisine": "Italian",
+    "tier": "top",
+    "aliases": [
+      "pasta",
+      "spaghetti",
+      "red sauce"
+    ]
+  },
+  {
+    "id": "cacio-e-pepe",
+    "name": "Cacio e pepe",
+    "cuisine": "Italian",
+    "tier": "top",
+    "aliases": [
+      "cheese pepper pasta"
+    ]
+  },
+  {
+    "id": "chicken-parm",
+    "name": "Chicken parmesan",
+    "cuisine": "Italian",
+    "tier": "top",
+    "aliases": [
+      "chicken parm",
+      "parmigiana"
+    ]
+  },
+  {
+    "id": "lasagna",
+    "name": "Lasagna",
+    "cuisine": "Italian",
+    "tier": "top",
+    "aliases": [
+      "lasagne"
+    ]
+  },
+  {
+    "id": "pizza-homemade",
+    "name": "Homemade pizza",
+    "cuisine": "Italian",
+    "tier": "top",
+    "aliases": [
+      "pizza",
+      "margherita"
+    ]
+  },
+  {
+    "id": "penne-arrabbiata",
+    "name": "Penne arrabbiata",
+    "cuisine": "Italian",
+    "tier": "top",
+    "aliases": [
+      "arrabbiata",
+      "spicy tomato pasta"
+    ]
+  },
+  {
+    "id": "risotto",
+    "name": "Risotto",
+    "cuisine": "Italian",
+    "tier": "top",
+    "aliases": [
+      "mushroom risotto",
+      "creamy rice"
+    ]
+  },
+  {
+    "id": "pasta-bolognese",
+    "name": "Pasta bolognese",
+    "cuisine": "Italian",
+    "tier": "top",
+    "aliases": [
+      "bolognese",
+      "ragu",
+      "meat sauce pasta"
+    ]
+  },
+  {
+    "id": "gnocchi",
+    "name": "Gnocchi",
+    "cuisine": "Italian",
+    "tier": "top",
+    "aliases": [
+      "potato gnocchi"
+    ]
+  },
+  {
+    "id": "chicken-piccata",
+    "name": "Chicken piccata",
+    "cuisine": "Italian",
+    "tier": "top",
+    "aliases": [
+      "lemon caper chicken"
+    ]
+  },
+  {
+    "id": "pasta-primavera",
+    "name": "Pasta primavera",
+    "cuisine": "Italian",
+    "tier": "top",
+    "aliases": [
+      "vegetable pasta"
+    ]
+  },
+  {
+    "id": "osso-buco",
+    "name": "Osso buco",
+    "cuisine": "Italian",
+    "tier": "top",
+    "aliases": [
+      "osso bucco",
+      "veal shank"
+    ]
+  },
+  {
+    "id": "saltimbocca",
+    "name": "Saltimbocca",
+    "cuisine": "Italian",
+    "tier": "overflow",
+    "aliases": [
+      "veal saltimbocca"
+    ]
+  },
+  {
+    "id": "cacciatore",
+    "name": "Cacciatore",
+    "cuisine": "Italian",
+    "tier": "overflow",
+    "aliases": [
+      "chicken cacciatore",
+      "hunter style"
+    ]
+  },
+  {
+    "id": "pasta-e-fagioli",
+    "name": "Pasta e fagioli",
+    "cuisine": "Italian",
+    "tier": "overflow",
+    "aliases": [
+      "pasta fagioli",
+      "bean soup"
+    ]
+  },
+  {
+    "id": "ribollita",
+    "name": "Ribollita",
+    "cuisine": "Italian",
+    "tier": "overflow",
+    "aliases": [
+      "tuscan soup"
+    ]
+  },
+  {
+    "id": "arancini",
+    "name": "Arancini",
+    "cuisine": "Italian",
+    "tier": "overflow",
+    "aliases": [
+      "rice balls",
+      "sicilian"
+    ]
+  },
+  {
+    "id": "polenta",
+    "name": "Polenta",
+    "cuisine": "Italian",
+    "tier": "overflow",
+    "aliases": [
+      "corn porridge"
+    ]
+  },
+  {
+    "id": "tilapia-piccata",
+    "name": "Tilapia piccata",
+    "cuisine": "Italian",
+    "tier": "overflow",
+    "aliases": [
+      "fish piccata"
+    ]
+  },
+  {
+    "id": "stracciatella-soup",
+    "name": "Stracciatella soup",
+    "cuisine": "Italian",
+    "tier": "overflow",
+    "aliases": [
+      "egg drop italian"
+    ]
+  },
+  {
+    "id": "burgers",
+    "name": "Burgers",
+    "cuisine": "American",
+    "tier": "top",
+    "aliases": [
+      "cheeseburger",
+      "hamburger"
+    ]
+  },
+  {
+    "id": "mac-cheese",
+    "name": "Mac and cheese",
+    "cuisine": "American",
+    "tier": "top",
+    "aliases": [
+      "macaroni",
+      "mac n cheese"
+    ]
+  },
+  {
+    "id": "fried-chicken",
+    "name": "Fried chicken",
+    "cuisine": "American",
+    "tier": "top",
+    "aliases": [
+      "southern fried"
+    ]
+  },
+  {
+    "id": "bbq-ribs",
+    "name": "BBQ ribs",
+    "cuisine": "American",
+    "tier": "top",
+    "aliases": [
+      "ribs",
+      "barbecue ribs"
+    ]
+  },
+  {
+    "id": "meatloaf",
+    "name": "Meatloaf",
+    "cuisine": "American",
+    "tier": "top",
+    "aliases": [
+      "meat loaf"
+    ]
+  },
+  {
+    "id": "pot-roast",
+    "name": "Pot roast",
+    "cuisine": "American",
+    "tier": "top",
+    "aliases": [
+      "pot roast beef"
+    ]
+  },
+  {
+    "id": "grilled-cheese",
+    "name": "Grilled cheese",
+    "cuisine": "American",
+    "tier": "top",
+    "aliases": [
+      "grilled cheese sandwich"
+    ]
+  },
+  {
+    "id": "salmon-baked",
+    "name": "Baked salmon",
+    "cuisine": "American",
+    "tier": "top",
+    "aliases": [
+      "salmon",
+      "roasted salmon"
+    ]
+  },
+  {
+    "id": "chili",
+    "name": "Chili",
+    "cuisine": "American",
+    "tier": "top",
+    "aliases": [
+      "chili con carne",
+      "texas chili"
+    ]
+  },
+  {
+    "id": "pulled-pork",
+    "name": "Pulled pork",
+    "cuisine": "American",
+    "tier": "top",
+    "aliases": [
+      "bbq pork"
+    ]
+  },
+  {
+    "id": "blt-wraps",
+    "name": "BLT wraps",
+    "cuisine": "American",
+    "tier": "top",
+    "aliases": [
+      "blt",
+      "bacon lettuce tomato"
+    ]
+  },
+  {
+    "id": "beef-stew",
+    "name": "Beef stew",
+    "cuisine": "American",
+    "tier": "top",
+    "aliases": [
+      "stew",
+      "pot au feu american"
+    ]
+  },
+  {
+    "id": "tuna-casserole",
+    "name": "Tuna casserole",
+    "cuisine": "American",
+    "tier": "overflow",
+    "aliases": [
+      "tuna noodle"
+    ]
+  },
+  {
+    "id": "chicken-pot-pie",
+    "name": "Chicken pot pie",
+    "cuisine": "American",
+    "tier": "overflow",
+    "aliases": [
+      "pot pie"
+    ]
+  },
+  {
+    "id": "sloppy-joes",
+    "name": "Sloppy joes",
+    "cuisine": "American",
+    "tier": "overflow",
+    "aliases": [
+      "sloppy joe"
+    ]
+  },
+  {
+    "id": "clam-chowder",
+    "name": "Clam chowder",
+    "cuisine": "American",
+    "tier": "overflow",
+    "aliases": [
+      "new england chowder"
+    ]
+  },
+  {
+    "id": "cobb-salad",
+    "name": "Cobb salad",
+    "cuisine": "American",
+    "tier": "overflow",
+    "aliases": [
+      "cobb"
+    ]
+  },
+  {
+    "id": "buffalo-chicken",
+    "name": "Buffalo chicken",
+    "cuisine": "American",
+    "tier": "overflow",
+    "aliases": [
+      "buffalo wings",
+      "hot wings"
+    ]
+  },
+  {
+    "id": "fish-tacos",
+    "name": "Fish tacos",
+    "cuisine": "American",
+    "tier": "overflow",
+    "aliases": [
+      "baja fish taco"
+    ]
+  },
+  {
+    "id": "corn-chowder",
+    "name": "Corn chowder",
+    "cuisine": "American",
+    "tier": "overflow",
+    "aliases": [
+      "corn soup"
+    ]
+  },
+  {
+    "id": "stir-fry",
+    "name": "Chicken stir-fry",
+    "cuisine": "Asian",
+    "tier": "top",
+    "aliases": [
+      "stir fry",
+      "stirfry"
+    ]
+  },
+  {
+    "id": "fried-rice-pan",
+    "name": "Fried rice",
+    "cuisine": "Asian",
+    "tier": "top",
+    "aliases": [
+      "yangzhou",
+      "egg fried rice"
+    ]
+  },
+  {
+    "id": "teriyaki-chicken",
+    "name": "Teriyaki chicken",
+    "cuisine": "Asian",
+    "tier": "top",
+    "aliases": [
+      "teriyaki"
+    ]
+  },
+  {
+    "id": "sushi-night",
+    "name": "Sushi night",
+    "cuisine": "Asian",
+    "tier": "top",
+    "aliases": [
+      "sushi",
+      "maki",
+      "nigiri"
+    ]
+  },
+  {
+    "id": "ramen-pan",
+    "name": "Ramen",
+    "cuisine": "Asian",
+    "tier": "top",
+    "aliases": [
+      "tonkotsu",
+      "noodle soup japanese style"
+    ]
+  },
+  {
+    "id": "pad-thai-pan",
+    "name": "Pad thai",
+    "cuisine": "Asian",
+    "tier": "top",
+    "aliases": [
+      "padthai",
+      "thai noodles"
+    ]
+  },
+  {
+    "id": "dumplings-pan",
+    "name": "Dumplings",
+    "cuisine": "Asian",
+    "tier": "top",
+    "aliases": [
+      "potstickers",
+      "jiaozi"
+    ]
+  },
+  {
+    "id": "korean-bbq-pan",
+    "name": "Korean BBQ",
+    "cuisine": "Asian",
+    "tier": "top",
+    "aliases": [
+      "bulgogi",
+      "kbbq",
+      "kalbi"
+    ]
+  },
+  {
+    "id": "mapo-tofu-pan",
+    "name": "Mapo tofu",
+    "cuisine": "Asian",
+    "tier": "top",
+    "aliases": [
+      "mapo",
+      "spicy tofu",
+      "sichuan tofu"
+    ]
+  },
+  {
+    "id": "bibimbap-pan",
+    "name": "Bibimbap",
+    "cuisine": "Asian",
+    "tier": "top",
+    "aliases": [
+      "korean rice bowl",
+      "bibim"
+    ]
+  },
+  {
+    "id": "pho-pan",
+    "name": "Pho",
+    "cuisine": "Asian",
+    "tier": "top",
+    "aliases": [
+      "pho noodle",
+      "vietnamese soup"
+    ]
+  },
+  {
+    "id": "beef-broccoli",
+    "name": "Beef and broccoli",
+    "cuisine": "Asian",
+    "tier": "top",
+    "aliases": [
+      "beef broccoli",
+      "chinese beef"
+    ]
+  },
+  {
+    "id": "baozi",
+    "name": "Baozi",
+    "cuisine": "Asian",
+    "tier": "overflow",
+    "aliases": [
+      "bao",
+      "steamed bun"
+    ]
+  },
+  {
+    "id": "japchae-pan",
+    "name": "Japchae",
+    "cuisine": "Asian",
+    "tier": "overflow",
+    "aliases": [
+      "glass noodles korean"
+    ]
+  },
+  {
+    "id": "general-tso",
+    "name": "General Tso's chicken",
+    "cuisine": "Asian",
+    "tier": "overflow",
+    "aliases": [
+      "general tso",
+      "general tsao"
+    ]
+  },
+  {
+    "id": "orange-chicken",
+    "name": "Orange chicken",
+    "cuisine": "Asian",
+    "tier": "overflow",
+    "aliases": [
+      "panda express orange"
+    ]
+  },
+  {
+    "id": "miso-soup-pan",
+    "name": "Miso soup",
+    "cuisine": "Asian",
+    "tier": "overflow",
+    "aliases": [
+      "miso"
+    ]
+  },
+  {
+    "id": "gyoza-pan",
+    "name": "Gyoza",
+    "cuisine": "Asian",
+    "tier": "overflow",
+    "aliases": [
+      "japanese dumplings"
+    ]
+  },
+  {
+    "id": "okonomiyaki",
+    "name": "Okonomiyaki",
+    "cuisine": "Asian",
+    "tier": "overflow",
+    "aliases": [
+      "japanese pancake"
+    ]
+  },
+  {
+    "id": "larb-pan",
+    "name": "Larb",
+    "cuisine": "Asian",
+    "tier": "overflow",
+    "aliases": [
+      "thai larb",
+      "meat salad"
+    ]
+  },
+  {
+    "id": "tom-kha-gai",
+    "name": "Tom kha gai",
+    "cuisine": "Asian",
+    "tier": "overflow",
+    "aliases": [
+      "coconut soup",
+      "tom kha"
+    ]
+  },
+  {
+    "id": "congee-pan",
+    "name": "Congee",
+    "cuisine": "Asian",
+    "tier": "overflow",
+    "aliases": [
+      "jook",
+      "rice porridge"
+    ]
+  },
+  {
+    "id": "lo-mein",
+    "name": "Lo mein",
+    "cuisine": "Asian",
+    "tier": "overflow",
+    "aliases": [
+      "lo mein noodles"
+    ]
+  },
+  {
+    "id": "bulgogi-bowls-pan",
+    "name": "Bulgogi bowls",
+    "cuisine": "Asian",
+    "tier": "overflow",
+    "aliases": [
+      "bulgogi rice bowl"
+    ]
+  },
+  {
+    "id": "shawarma-med",
+    "name": "Chicken shawarma",
+    "cuisine": "Mediterranean",
+    "tier": "top",
+    "aliases": [
+      "shawarma",
+      "shawarma wrap"
+    ]
+  },
+  {
+    "id": "falafel-bowl",
+    "name": "Falafel",
+    "cuisine": "Mediterranean",
+    "tier": "top",
+    "aliases": [
+      "falafel bowl",
+      "falafel plate"
+    ]
+  },
+  {
+    "id": "greek-salad",
+    "name": "Greek salad bowl",
+    "cuisine": "Mediterranean",
+    "tier": "top",
+    "aliases": [
+      "greek salad",
+      "horiatiki"
+    ]
+  },
+  {
+    "id": "lamb-kebabs",
+    "name": "Lamb kebabs",
+    "cuisine": "Mediterranean",
+    "tier": "top",
+    "aliases": [
+      "kebabs",
+      "skewers"
+    ]
+  },
+  {
+    "id": "hummus-plate",
+    "name": "Hummus plate",
+    "cuisine": "Mediterranean",
+    "tier": "top",
+    "aliases": [
+      "hummus",
+      "hummus dip"
+    ]
+  },
+  {
+    "id": "moussaka",
+    "name": "Moussaka",
+    "cuisine": "Mediterranean",
+    "tier": "top",
+    "aliases": [
+      "greek moussaka"
+    ]
+  },
+  {
+    "id": "spanakopita",
+    "name": "Spanakopita",
+    "cuisine": "Mediterranean",
+    "tier": "top",
+    "aliases": [
+      "spinach pie",
+      "greek pastry"
+    ]
+  },
+  {
+    "id": "grilled-fish",
+    "name": "Grilled fish",
+    "cuisine": "Mediterranean",
+    "tier": "top",
+    "aliases": [
+      "fish grill",
+      "branzino"
+    ]
+  },
+  {
+    "id": "shakshuka",
+    "name": "Shakshuka",
+    "cuisine": "Mediterranean",
+    "tier": "top",
+    "aliases": [
+      "eggs in tomato",
+      "shakshouka"
+    ]
+  },
+  {
+    "id": "lamb-chops-med",
+    "name": "Lamb chops",
+    "cuisine": "Mediterranean",
+    "tier": "top",
+    "aliases": [
+      "grilled lamb chops"
+    ]
+  },
+  {
+    "id": "tabbouleh-bowl",
+    "name": "Tabbouleh bowl",
+    "cuisine": "Mediterranean",
+    "tier": "top",
+    "aliases": [
+      "tabbouleh",
+      "parsley salad"
+    ]
+  },
+  {
+    "id": "chicken-souvlaki",
+    "name": "Chicken souvlaki",
+    "cuisine": "Mediterranean",
+    "tier": "top",
+    "aliases": [
+      "souvlaki",
+      "greek skewers"
+    ]
+  },
+  {
+    "id": "dolmades",
+    "name": "Dolmades",
+    "cuisine": "Mediterranean",
+    "tier": "overflow",
+    "aliases": [
+      "dolma",
+      "stuffed grape leaves"
+    ]
+  },
+  {
+    "id": "pastitsio",
+    "name": "Pastitsio",
+    "cuisine": "Mediterranean",
+    "tier": "overflow",
+    "aliases": [
+      "greek lasagna"
+    ]
+  },
+  {
+    "id": "baba-ganoush-plate",
+    "name": "Baba ganoush plate",
+    "cuisine": "Mediterranean",
+    "tier": "overflow",
+    "aliases": [
+      "baba ghanoush",
+      "eggplant dip"
+    ]
+  },
+  {
+    "id": "fattoush-med",
+    "name": "Fattoush",
+    "cuisine": "Mediterranean",
+    "tier": "overflow",
+    "aliases": [
+      "fattoush salad"
+    ]
+  },
+  {
+    "id": "lentil-soup-med",
+    "name": "Lentil soup",
+    "cuisine": "Mediterranean",
+    "tier": "overflow",
+    "aliases": [
+      "mercimek",
+      "lentil"
+    ]
+  },
+  {
+    "id": "couscous-bowls",
+    "name": "Couscous bowls",
+    "cuisine": "Mediterranean",
+    "tier": "overflow",
+    "aliases": [
+      "couscous"
+    ]
+  },
+  {
+    "id": "chermoula-chicken",
+    "name": "Chermoula chicken",
+    "cuisine": "Mediterranean",
+    "tier": "overflow",
+    "aliases": [
+      "chermoula"
+    ]
+  },
+  {
+    "id": "ful-medames",
+    "name": "Ful medames",
+    "cuisine": "Mediterranean",
+    "tier": "overflow",
+    "aliases": [
+      "fava beans",
+      "ful"
+    ]
+  },
+  {
+    "id": "butter-chicken",
+    "name": "Butter chicken",
+    "cuisine": "Indian",
+    "tier": "top",
+    "aliases": [
+      "murgh makhani",
+      "butter masala"
+    ]
+  },
+  {
+    "id": "chicken-tikka",
+    "name": "Chicken tikka masala",
+    "cuisine": "Indian",
+    "tier": "top",
+    "aliases": [
+      "tikka masala",
+      "tikka"
+    ]
+  },
+  {
+    "id": "dal",
+    "name": "Dal tadka",
+    "cuisine": "Indian",
+    "tier": "top",
+    "aliases": [
+      "dal",
+      "lentil curry",
+      "tadka dal",
+      "dal fry"
+    ]
+  },
+  {
+    "id": "biryani",
+    "name": "Biryani",
+    "cuisine": "Indian",
+    "tier": "top",
+    "aliases": [
+      "chicken biryani",
+      "hyderabadi"
+    ]
+  },
+  {
+    "id": "chana-masala",
+    "name": "Chana masala",
+    "cuisine": "Indian",
+    "tier": "top",
+    "aliases": [
+      "chickpea curry",
+      "chana"
+    ]
+  },
+  {
+    "id": "palak-paneer",
+    "name": "Palak paneer",
+    "cuisine": "Indian",
+    "tier": "top",
+    "aliases": [
+      "spinach paneer",
+      "saag paneer"
+    ]
+  },
+  {
+    "id": "aloo-gobi",
+    "name": "Aloo gobi",
+    "cuisine": "Indian",
+    "tier": "top",
+    "aliases": [
+      "potato cauliflower",
+      "alu gobi"
+    ]
+  },
+  {
+    "id": "tandoori-chicken",
+    "name": "Tandoori chicken",
+    "cuisine": "Indian",
+    "tier": "top",
+    "aliases": [
+      "tandoori",
+      "tandoor"
+    ]
+  },
+  {
+    "id": "lamb-rogan-josh",
+    "name": "Lamb rogan josh",
+    "cuisine": "Indian",
+    "tier": "top",
+    "aliases": [
+      "rogan josh",
+      "kashmiri curry"
+    ]
+  },
+  {
+    "id": "chicken-korma",
+    "name": "Chicken korma",
+    "cuisine": "Indian",
+    "tier": "top",
+    "aliases": [
+      "korma",
+      "mughlai"
+    ]
+  },
+  {
+    "id": "malai-kofta",
+    "name": "Malai kofta",
+    "cuisine": "Indian",
+    "tier": "top",
+    "aliases": [
+      "paneer kofta",
+      "cream kofta"
+    ]
+  },
+  {
+    "id": "saag-aloo",
+    "name": "Saag aloo",
+    "cuisine": "Indian",
+    "tier": "top",
+    "aliases": [
+      "sag aloo",
+      "spinach potato"
+    ]
+  },
+  {
+    "id": "vindaloo",
+    "name": "Vindaloo",
+    "cuisine": "Indian",
+    "tier": "overflow",
+    "aliases": [
+      "pork vindaloo",
+      "goan curry"
+    ]
+  },
+  {
+    "id": "keema",
+    "name": "Keema",
+    "cuisine": "Indian",
+    "tier": "overflow",
+    "aliases": [
+      "keema curry",
+      "mince curry"
+    ]
+  },
+  {
+    "id": "dhokla",
+    "name": "Dhokla",
+    "cuisine": "Indian",
+    "tier": "overflow",
+    "aliases": [
+      "gujarati dhokla"
+    ]
+  },
+  {
+    "id": "baingan-bharta",
+    "name": "Baingan bharta",
+    "cuisine": "Indian",
+    "tier": "overflow",
+    "aliases": [
+      "eggplant mash",
+      "smoked eggplant"
+    ]
+  },
+  {
+    "id": "pav-bhaji",
+    "name": "Pav bhaji",
+    "cuisine": "Indian",
+    "tier": "overflow",
+    "aliases": [
+      "bhaji pav",
+      "mumbai pav"
+    ]
+  },
+  {
+    "id": "chole-bhature",
+    "name": "Chole bhature",
+    "cuisine": "Indian",
+    "tier": "overflow",
+    "aliases": [
+      "chana bhatura",
+      "cholle"
+    ]
+  },
+  {
+    "id": "rajma",
+    "name": "Rajma",
+    "cuisine": "Indian",
+    "tier": "overflow",
+    "aliases": [
+      "kidney bean curry",
+      "rajma chawal"
+    ]
+  },
+  {
+    "id": "haleem",
+    "name": "Haleem",
+    "cuisine": "Indian",
+    "tier": "overflow",
+    "aliases": [
+      "hyderabadi haleem",
+      "lentil meat stew"
+    ]
+  },
+  {
+    "id": "shawarma-bowls",
+    "name": "Shawarma bowls",
+    "cuisine": "Middle Eastern",
+    "tier": "top",
+    "aliases": [
+      "shawarma bowl",
+      "shawarma plate"
+    ]
+  },
+  {
+    "id": "lamb-kofta",
+    "name": "Lamb kofta",
+    "cuisine": "Middle Eastern",
+    "tier": "top",
+    "aliases": [
+      "kofta",
+      "meatballs middle eastern"
+    ]
+  },
+  {
+    "id": "fattoush-salad",
+    "name": "Fattoush salad",
+    "cuisine": "Middle Eastern",
+    "tier": "top",
+    "aliases": [
+      "fattoush"
+    ]
+  },
+  {
+    "id": "mansaf",
+    "name": "Mansaf",
+    "cuisine": "Middle Eastern",
+    "tier": "top",
+    "aliases": [
+      "jordanian mansaf",
+      "lamb yogurt rice"
+    ]
+  },
+  {
+    "id": "musakhan",
+    "name": "Musakhan",
+    "cuisine": "Middle Eastern",
+    "tier": "top",
+    "aliases": [
+      "palestinian chicken",
+      "sumac onion"
+    ]
+  },
+  {
+    "id": "kibbeh",
+    "name": "Kibbeh",
+    "cuisine": "Middle Eastern",
+    "tier": "top",
+    "aliases": [
+      "kibbe",
+      "bulgur meatballs"
+    ]
+  },
+  {
+    "id": "mujaddara",
+    "name": "Mujaddara",
+    "cuisine": "Middle Eastern",
+    "tier": "top",
+    "aliases": [
+      "lentil rice",
+      "mujadara"
+    ]
+  },
+  {
+    "id": "stuffed-peppers-me",
+    "name": "Stuffed peppers",
+    "cuisine": "Middle Eastern",
+    "tier": "top",
+    "aliases": [
+      "dolmeh pepper"
+    ]
+  },
+  {
+    "id": "chicken-kabsa",
+    "name": "Chicken kabsa",
+    "cuisine": "Middle Eastern",
+    "tier": "top",
+    "aliases": [
+      "kabsa",
+      "saudi rice"
+    ]
+  },
+  {
+    "id": "harira-soup",
+    "name": "Harira soup",
+    "cuisine": "Middle Eastern",
+    "tier": "top",
+    "aliases": [
+      "harira",
+      "moroccan soup"
+    ]
+  },
+  {
+    "id": "zaatar-flatbreads",
+    "name": "Za'atar flatbreads",
+    "cuisine": "Middle Eastern",
+    "tier": "top",
+    "aliases": [
+      "zaatar bread",
+      "manakish zaatar"
+    ]
+  },
+  {
+    "id": "labneh-bowls",
+    "name": "Labneh bowls",
+    "cuisine": "Middle Eastern",
+    "tier": "top",
+    "aliases": [
+      "labneh",
+      "strained yogurt"
+    ]
+  },
+  {
+    "id": "freekeh-bowls",
+    "name": "Freekeh bowls",
+    "cuisine": "Middle Eastern",
+    "tier": "overflow",
+    "aliases": [
+      "freekeh",
+      "green wheat"
+    ]
+  },
+  {
+    "id": "maqluba",
+    "name": "Maqluba",
+    "cuisine": "Middle Eastern",
+    "tier": "overflow",
+    "aliases": [
+      "makloubeh",
+      "upside down rice"
+    ]
+  },
+  {
+    "id": "bamia",
+    "name": "Bamia",
+    "cuisine": "Middle Eastern",
+    "tier": "overflow",
+    "aliases": [
+      "okra stew",
+      "bamya"
+    ]
+  },
+  {
+    "id": "fatteh",
+    "name": "Fatteh",
+    "cuisine": "Middle Eastern",
+    "tier": "overflow",
+    "aliases": [
+      "fattah",
+      "chickpea yogurt"
+    ]
+  },
+  {
+    "id": "lentil-kibbeh",
+    "name": "Lentil kibbeh",
+    "cuisine": "Middle Eastern",
+    "tier": "overflow",
+    "aliases": [
+      "vegetarian kibbeh"
+    ]
+  },
+  {
+    "id": "sfeeha",
+    "name": "Sfeeha",
+    "cuisine": "Middle Eastern",
+    "tier": "overflow",
+    "aliases": [
+      "lahmacun style",
+      "meat pie arabic"
+    ]
+  },
+  {
+    "id": "mafroum",
+    "name": "Mafroum",
+    "cuisine": "Middle Eastern",
+    "tier": "overflow",
+    "aliases": [
+      "stuffed vegetables libyan"
+    ]
+  },
+  {
+    "id": "chicken-katsu",
+    "name": "Chicken katsu",
+    "cuisine": "Japanese",
+    "tier": "top",
+    "aliases": [
+      "katsu chicken",
+      "panko chicken"
+    ]
+  },
+  {
+    "id": "tonkatsu",
+    "name": "Tonkatsu",
+    "cuisine": "Japanese",
+    "tier": "top",
+    "aliases": [
+      "pork katsu",
+      "fried pork cutlet"
+    ]
+  },
+  {
+    "id": "yakitori",
+    "name": "Yakitori",
+    "cuisine": "Japanese",
+    "tier": "top",
+    "aliases": [
+      "chicken skewers japanese",
+      "yaki tori"
+    ]
+  },
+  {
+    "id": "miso-ramen",
+    "name": "Miso ramen",
+    "cuisine": "Japanese",
+    "tier": "top",
+    "aliases": [
+      "miso soup ramen",
+      "ramen miso"
+    ]
+  },
+  {
+    "id": "gyoza-jp",
+    "name": "Gyoza",
+    "cuisine": "Japanese",
+    "tier": "top",
+    "aliases": [
+      "japanese dumplings",
+      "potstickers japanese"
+    ]
+  },
+  {
+    "id": "salmon-teriyaki",
+    "name": "Salmon teriyaki",
+    "cuisine": "Japanese",
+    "tier": "top",
+    "aliases": [
+      "teriyaki salmon"
+    ]
+  },
+  {
+    "id": "soba-noodles",
+    "name": "Soba noodles",
+    "cuisine": "Japanese",
+    "tier": "top",
+    "aliases": [
+      "soba",
+      "buckwheat noodles"
+    ]
+  },
+  {
+    "id": "oyakodon",
+    "name": "Oyakodon",
+    "cuisine": "Japanese",
+    "tier": "top",
+    "aliases": [
+      "parent child bowl",
+      "chicken egg rice"
+    ]
+  },
+  {
+    "id": "onigiri-bowls",
+    "name": "Onigiri bowls",
+    "cuisine": "Japanese",
+    "tier": "top",
+    "aliases": [
+      "onigiri",
+      "rice ball"
+    ]
+  },
+  {
+    "id": "karaage",
+    "name": "Karaage",
+    "cuisine": "Japanese",
+    "tier": "top",
+    "aliases": [
+      "japanese fried chicken",
+      "kara age"
+    ]
+  },
+  {
+    "id": "shabu-shabu",
+    "name": "Shabu shabu",
+    "cuisine": "Japanese",
+    "tier": "top",
+    "aliases": [
+      "hot pot japanese",
+      "shabu"
+    ]
+  },
+  {
+    "id": "udon-soup",
+    "name": "Udon soup",
+    "cuisine": "Japanese",
+    "tier": "top",
+    "aliases": [
+      "udon",
+      "thick noodles"
+    ]
+  },
+  {
+    "id": "takoyaki",
+    "name": "Takoyaki",
+    "cuisine": "Japanese",
+    "tier": "overflow",
+    "aliases": [
+      "octopus balls",
+      "osaka snack"
+    ]
+  },
+  {
+    "id": "nabe",
+    "name": "Nabe",
+    "cuisine": "Japanese",
+    "tier": "overflow",
+    "aliases": [
+      "japanese hot pot",
+      "nabemono"
+    ]
+  },
+  {
+    "id": "sukiyaki",
+    "name": "Sukiyaki",
+    "cuisine": "Japanese",
+    "tier": "overflow",
+    "aliases": [
+      "beef hot pot japanese"
+    ]
+  },
+  {
+    "id": "chawanmushi",
+    "name": "Chawanmushi",
+    "cuisine": "Japanese",
+    "tier": "overflow",
+    "aliases": [
+      "savory egg custard"
+    ]
+  },
+  {
+    "id": "tamago-gohan",
+    "name": "Tamago gohan",
+    "cuisine": "Japanese",
+    "tier": "overflow",
+    "aliases": [
+      "egg rice",
+      "tamago kake"
+    ]
+  },
+  {
+    "id": "inari-sushi",
+    "name": "Inari sushi",
+    "cuisine": "Japanese",
+    "tier": "overflow",
+    "aliases": [
+      "inari",
+      "tofu pocket sushi"
+    ]
+  },
+  {
+    "id": "zosui",
+    "name": "Zosui",
+    "cuisine": "Japanese",
+    "tier": "overflow",
+    "aliases": [
+      "japanese rice soup",
+      "porridge"
+    ]
+  },
+  {
+    "id": "hiyashi-chuka",
+    "name": "Hiyashi chuka",
+    "cuisine": "Japanese",
+    "tier": "overflow",
+    "aliases": [
+      "cold ramen",
+      "summer noodles"
+    ]
+  },
+  {
+    "id": "bibimbap",
+    "name": "Bibimbap",
+    "cuisine": "Korean",
+    "tier": "top",
+    "aliases": [
+      "bibim bap",
+      "korean rice bowl",
+      "mixed rice"
+    ]
+  },
+  {
+    "id": "korean-bbq",
+    "name": "Korean BBQ",
+    "cuisine": "Korean",
+    "tier": "top",
+    "aliases": [
+      "kbbq",
+      "samgyupsal grill",
+      "galbi"
+    ]
+  },
+  {
+    "id": "japchae",
+    "name": "Japchae",
+    "cuisine": "Korean",
+    "tier": "top",
+    "aliases": [
+      "glass noodles",
+      "sweet potato noodles"
+    ]
+  },
+  {
+    "id": "kimchi-jjigae",
+    "name": "Kimchi jjigae",
+    "cuisine": "Korean",
+    "tier": "top",
+    "aliases": [
+      "kimchi stew",
+      "kimchi soup",
+      "kimchi"
+    ]
+  },
+  {
+    "id": "sundubu-jjigae",
+    "name": "Sundubu jjigae",
+    "cuisine": "Korean",
+    "tier": "top",
+    "aliases": [
+      "soft tofu stew",
+      "soondubu"
+    ]
+  },
+  {
+    "id": "bulgogi-bowls",
+    "name": "Bulgogi bowls",
+    "cuisine": "Korean",
+    "tier": "top",
+    "aliases": [
+      "bulgogi",
+      "marinated beef bowl"
+    ]
+  },
+  {
+    "id": "tteokbokki",
+    "name": "Tteokbokki",
+    "cuisine": "Korean",
+    "tier": "top",
+    "aliases": [
+      "tteok bokki",
+      "spicy rice cakes"
+    ]
+  },
+  {
+    "id": "dakgalbi",
+    "name": "Dakgalbi",
+    "cuisine": "Korean",
+    "tier": "top",
+    "aliases": [
+      "spicy chicken stir fry",
+      "chuncheon"
+    ]
+  },
+  {
+    "id": "galbitang",
+    "name": "Galbitang",
+    "cuisine": "Korean",
+    "tier": "top",
+    "aliases": [
+      "beef short rib soup",
+      "galbi tang"
+    ]
+  },
+  {
+    "id": "samgyeopsal",
+    "name": "Samgyeopsal",
+    "cuisine": "Korean",
+    "tier": "top",
+    "aliases": [
+      "pork belly korean",
+      "samgyupsal"
+    ]
+  },
+  {
+    "id": "cold-noodles",
+    "name": "Cold noodles",
+    "cuisine": "Korean",
+    "tier": "top",
+    "aliases": [
+      "naengmyeon",
+      "cold buckwheat"
+    ]
+  },
+  {
+    "id": "doenjang-jjigae",
+    "name": "Doenjang jjigae",
+    "cuisine": "Korean",
+    "tier": "top",
+    "aliases": [
+      "soybean paste stew",
+      "doenjang"
+    ]
+  },
+  {
+    "id": "haemul-pajeon",
+    "name": "Haemul pajeon",
+    "cuisine": "Korean",
+    "tier": "overflow",
+    "aliases": [
+      "seafood pancake",
+      "pajeon"
+    ]
+  },
+  {
+    "id": "kongnamul",
+    "name": "Kongnamul",
+    "cuisine": "Korean",
+    "tier": "overflow",
+    "aliases": [
+      "bean sprouts side",
+      "kong namul"
+    ]
+  },
+  {
+    "id": "bossam",
+    "name": "Bossam",
+    "cuisine": "Korean",
+    "tier": "overflow",
+    "aliases": [
+      "boiled pork wraps",
+      "pork belly wraps"
+    ]
+  },
+  {
+    "id": "nurungji",
+    "name": "Nurungji",
+    "cuisine": "Korean",
+    "tier": "overflow",
+    "aliases": [
+      "scorched rice",
+      "crispy rice"
+    ]
+  },
+  {
+    "id": "gimbap",
+    "name": "Gimbap",
+    "cuisine": "Korean",
+    "tier": "overflow",
+    "aliases": [
+      "kimbap",
+      "korean sushi roll"
+    ]
+  },
+  {
+    "id": "seolleongtang",
+    "name": "Seolleongtang",
+    "cuisine": "Korean",
+    "tier": "overflow",
+    "aliases": [
+      "ox bone soup",
+      "sullungtang"
+    ]
+  },
+  {
+    "id": "yukgaejang",
+    "name": "Yukgaejang",
+    "cuisine": "Korean",
+    "tier": "overflow",
+    "aliases": [
+      "spicy beef soup",
+      "yuk gae jang"
+    ]
+  },
+  {
+    "id": "mapo-tofu",
+    "name": "Mapo tofu",
+    "cuisine": "Chinese",
+    "tier": "top",
+    "aliases": [
+      "mapo",
+      "spicy tofu",
+      "chinese tofu",
+      "sichuan tofu",
+      "mabo tofu"
+    ]
+  },
+  {
+    "id": "kung-pao-chicken",
+    "name": "Kung pao chicken",
+    "cuisine": "Chinese",
+    "tier": "top",
+    "aliases": [
+      "kung pao",
+      "gong bao"
+    ]
+  },
+  {
+    "id": "sweet-sour-pork",
+    "name": "Sweet and sour pork",
+    "cuisine": "Chinese",
+    "tier": "top",
+    "aliases": [
+      "sweet sour pork"
+    ]
+  },
+  {
+    "id": "hot-pot",
+    "name": "Hot pot",
+    "cuisine": "Chinese",
+    "tier": "top",
+    "aliases": [
+      "chinese hotpot",
+      "huoguo"
+    ]
+  },
+  {
+    "id": "dumplings-cn",
+    "name": "Dumplings",
+    "cuisine": "Chinese",
+    "tier": "top",
+    "aliases": [
+      "jiaozi",
+      "chinese dumplings"
+    ]
+  },
+  {
+    "id": "fried-rice-cn",
+    "name": "Fried rice",
+    "cuisine": "Chinese",
+    "tier": "top",
+    "aliases": [
+      "yangzhou fried rice",
+      "chao fan"
+    ]
+  },
+  {
+    "id": "congee-cn",
+    "name": "Congee",
+    "cuisine": "Chinese",
+    "tier": "top",
+    "aliases": [
+      "zhou",
+      "jook chinese"
+    ]
+  },
+  {
+    "id": "char-siu",
+    "name": "Char siu",
+    "cuisine": "Chinese",
+    "tier": "top",
+    "aliases": [
+      "charsiu",
+      "bbq pork chinese"
+    ]
+  },
+  {
+    "id": "wonton-soup",
+    "name": "Wonton soup",
+    "cuisine": "Chinese",
+    "tier": "top",
+    "aliases": [
+      "wonton",
+      "hun tun"
+    ]
+  },
+  {
+    "id": "peking-duck",
+    "name": "Peking duck",
+    "cuisine": "Chinese",
+    "tier": "top",
+    "aliases": [
+      "beijing duck",
+      "crispy duck"
+    ]
+  },
+  {
+    "id": "dan-dan-noodles",
+    "name": "Dan dan noodles",
+    "cuisine": "Chinese",
+    "tier": "top",
+    "aliases": [
+      "dandan",
+      "sesame noodles sichuan"
+    ]
+  },
+  {
+    "id": "red-braised-pork",
+    "name": "Red braised pork",
+    "cuisine": "Chinese",
+    "tier": "top",
+    "aliases": [
+      "hong shao rou",
+      "braised pork belly"
+    ]
+  },
+  {
+    "id": "lions-head-meatballs",
+    "name": "Lion's head meatballs",
+    "cuisine": "Chinese",
+    "tier": "overflow",
+    "aliases": [
+      "lion head",
+      "large meatballs"
+    ]
+  },
+  {
+    "id": "buddhas-delight",
+    "name": "Buddha's delight",
+    "cuisine": "Chinese",
+    "tier": "overflow",
+    "aliases": [
+      "lo han jai",
+      "vegetarian buddha"
+    ]
+  },
+  {
+    "id": "twice-cooked-pork",
+    "name": "Twice cooked pork",
+    "cuisine": "Chinese",
+    "tier": "overflow",
+    "aliases": [
+      "hui guo rou",
+      "double cooked pork"
+    ]
+  },
+  {
+    "id": "steamed-fish",
+    "name": "Steamed fish",
+    "cuisine": "Chinese",
+    "tier": "overflow",
+    "aliases": [
+      "chinese steamed fish",
+      "ginger scallion fish"
+    ]
+  },
+  {
+    "id": "egg-drop-soup",
+    "name": "Egg drop soup",
+    "cuisine": "Chinese",
+    "tier": "overflow",
+    "aliases": [
+      "egg flower soup"
+    ]
+  },
+  {
+    "id": "scallion-pancakes",
+    "name": "Scallion pancakes",
+    "cuisine": "Chinese",
+    "tier": "overflow",
+    "aliases": [
+      "cong you bing",
+      "green onion pancake"
+    ]
+  },
+  {
+    "id": "spring-rolls-cn",
+    "name": "Spring rolls",
+    "cuisine": "Chinese",
+    "tier": "overflow",
+    "aliases": [
+      "chun juan",
+      "fried spring roll"
+    ]
+  },
+  {
+    "id": "pad-thai",
+    "name": "Pad thai",
+    "cuisine": "Southeast Asian",
+    "tier": "top",
+    "aliases": [
+      "padthai",
+      "thai stir fry noodles"
+    ]
+  },
+  {
+    "id": "green-curry",
+    "name": "Green curry",
+    "cuisine": "Southeast Asian",
+    "tier": "top",
+    "aliases": [
+      "thai green curry",
+      "gaeng keow wan"
+    ]
+  },
+  {
+    "id": "massaman-curry",
+    "name": "Massaman curry",
+    "cuisine": "Southeast Asian",
+    "tier": "top",
+    "aliases": [
+      "massaman",
+      "muslim curry thai"
+    ]
+  },
+  {
+    "id": "pho",
+    "name": "Pho",
+    "cuisine": "Southeast Asian",
+    "tier": "top",
+    "aliases": [
+      "pho bo",
+      "vietnamese noodle soup",
+      "beef pho"
+    ]
+  },
+  {
+    "id": "banh-mi-bowls",
+    "name": "Banh mi bowls",
+    "cuisine": "Southeast Asian",
+    "tier": "top",
+    "aliases": [
+      "banh mi",
+      "vietnamese sandwich bowl"
+    ]
+  },
+  {
+    "id": "nasi-goreng",
+    "name": "Nasi goreng",
+    "cuisine": "Southeast Asian",
+    "tier": "top",
+    "aliases": [
+      "indonesian fried rice"
+    ]
+  },
+  {
+    "id": "laksa",
+    "name": "Laksa",
+    "cuisine": "Southeast Asian",
+    "tier": "top",
+    "aliases": [
+      "curry laksa",
+      "singapore laksa"
+    ]
+  },
+  {
+    "id": "larb-sea",
+    "name": "Larb",
+    "cuisine": "Southeast Asian",
+    "tier": "top",
+    "aliases": [
+      "thai larb",
+      "larb moo",
+      "meat salad thai"
+    ]
+  },
+  {
+    "id": "tom-yum-soup",
+    "name": "Tom yum soup",
+    "cuisine": "Southeast Asian",
+    "tier": "top",
+    "aliases": [
+      "tom yum",
+      "tom yum goong",
+      "sour soup"
+    ]
+  },
+  {
+    "id": "rendang",
+    "name": "Rendang",
+    "cuisine": "Southeast Asian",
+    "tier": "top",
+    "aliases": [
+      "beef rendang",
+      "indonesian curry"
+    ]
+  },
+  {
+    "id": "satay",
+    "name": "Satay",
+    "cuisine": "Southeast Asian",
+    "tier": "top",
+    "aliases": [
+      "chicken satay",
+      "peanut sauce skewers"
+    ]
+  },
+  {
+    "id": "spring-rolls-sea",
+    "name": "Spring rolls",
+    "cuisine": "Southeast Asian",
+    "tier": "top",
+    "aliases": [
+      "vietnamese spring rolls",
+      "goi cuon style fresh"
+    ]
+  },
+  {
+    "id": "goi-cuon",
+    "name": "Goi cuon",
+    "cuisine": "Southeast Asian",
+    "tier": "overflow",
+    "aliases": [
+      "fresh spring rolls",
+      "summer rolls",
+      "rice paper rolls"
+    ]
+  },
+  {
+    "id": "bun-bo-hue",
+    "name": "Bun bo hue",
+    "cuisine": "Southeast Asian",
+    "tier": "overflow",
+    "aliases": [
+      "spicy beef noodle soup hue"
+    ]
+  },
+  {
+    "id": "beef-lok-lak",
+    "name": "Beef lok lak",
+    "cuisine": "Southeast Asian",
+    "tier": "overflow",
+    "aliases": [
+      "lok lak",
+      "cambodian beef"
+    ]
+  },
+  {
+    "id": "hainanese-chicken",
+    "name": "Hainanese chicken",
+    "cuisine": "Southeast Asian",
+    "tier": "overflow",
+    "aliases": [
+      "hainan chicken rice",
+      "singapore chicken"
+    ]
+  },
+  {
+    "id": "khao-pad",
+    "name": "Khao pad",
+    "cuisine": "Southeast Asian",
+    "tier": "overflow",
+    "aliases": [
+      "thai fried rice",
+      "khao phat"
+    ]
+  },
+  {
+    "id": "khao-soi",
+    "name": "Khao soi",
+    "cuisine": "Southeast Asian",
+    "tier": "overflow",
+    "aliases": [
+      "northern thai curry noodles",
+      "chiang mai noodles"
+    ]
+  },
+  {
+    "id": "roast-chicken",
+    "name": "Roast chicken",
+    "cuisine": "French",
+    "tier": "overflow",
+    "aliases": [
+      "roast chicken french",
+      "poulet roti"
+    ]
+  },
+  {
+    "id": "coq-au-vin",
+    "name": "Coq au vin",
+    "cuisine": "French",
+    "tier": "overflow",
+    "aliases": [
+      "wine chicken",
+      "burgundy chicken"
+    ]
+  },
+  {
+    "id": "steak-frites",
+    "name": "Steak frites",
+    "cuisine": "French",
+    "tier": "overflow",
+    "aliases": [
+      "steak fries",
+      "steak french"
+    ]
+  }
 ]

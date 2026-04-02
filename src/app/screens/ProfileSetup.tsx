@@ -86,11 +86,11 @@ const Q6_OPTIONS = [
 
 /** Pace dial: value 1–5 left to right */
 const PACE_OPTIONS = [
-  { value: 1, label: "Keep it familiar" },
-  { value: 2, label: "Mostly familiar" },
-  { value: 3, label: "Mix it up" },
-  { value: 4, label: "Push a little" },
-  { value: 5, label: "Surprise us" },
+  { value: 1, label: "Rarely" },
+  { value: 2, label: "Sometimes" },
+  { value: 3, label: "Weekly" },
+  { value: 4, label: "Often" },
+  { value: 5, label: "Always" },
 ] as const;
 
 const KID_AGE_OPTIONS = ["toddler", "elementary", "teen"];
@@ -365,6 +365,10 @@ export function ProfileSetup() {
     saveOnboardingDraft({ answers, sectionIndex, q2Other });
   }, [answers, sectionIndex, q2Other]);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.pathname]);
+
   const section = SECTIONS[sectionIndex] ?? SECTIONS[0];
   const isLastSection = sectionIndex === 2;
 
@@ -474,11 +478,13 @@ export function ProfileSetup() {
       </div>
 
       <div
-        className={`flex-1 pb-32 min-h-0 ${
+        className={`flex-1 min-h-0 ${
+          sectionIndex === 2 ? "pb-[140px]" : "pb-32"
+        } ${sectionIndex === 1 ? "md:pb-8" : ""} ${
           sectionIndex === 0 ? "px-page md:px-8" : "px-page"
         } ${
           sectionIndex === 1 || sectionIndex === 2
-            ? "flex flex-col min-h-0 overflow-hidden md:overflow-visible md:pb-8"
+            ? "flex flex-col min-h-0 overflow-hidden md:overflow-visible"
             : sectionIndex === 0
               ? ""
               : "overflow-y-auto"
@@ -592,7 +598,7 @@ export function ProfileSetup() {
               <p className="text-[14px] text-muted-foreground mb-4 leading-relaxed">{section.subtitle}</p>
             </div>
 
-            <div className="flex flex-col flex-1 min-h-0 md:max-h-[min(52vh,560px)] md:shrink">
+            <div className="flex flex-col flex-1 min-h-0">
               <MealSelector
                 embedded
                 open
@@ -604,33 +610,6 @@ export function ProfileSetup() {
                 onConfirm={handleAspirationsConfirmed}
               />
             </div>
-
-            <div className="border-t border-border pt-8 shrink-0">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-1">
-                Your pace
-              </p>
-              <p className="text-[15px] text-foreground mb-1 font-medium">How fast do you want to get there?</p>
-              <p className="text-[14px] text-muted-foreground mb-4 leading-relaxed">
-                This controls how often Melu introduces something new vs. sticking to what you know.
-              </p>
-              <div className="flex flex-row gap-2 w-full">
-                {PACE_OPTIONS.map((o) => {
-                  const selected = answers.discoveryPace === o.value;
-                  return (
-                    <button
-                      key={o.value}
-                      type="button"
-                      onClick={() => update("discoveryPace", o.value)}
-                      className={`flex-1 min-w-0 rounded-xl px-2 py-3 text-center text-[13px] leading-[1.3] font-medium cursor-pointer transition-colors ${
-                        selected ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground border border-border"
-                      }`}
-                    >
-                      {o.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
           </div>
         )}
 
@@ -640,36 +619,90 @@ export function ProfileSetup() {
       </div>
 
       <div
-        className={`fixed bottom-0 left-0 right-0 bg-background border-t border-border px-page py-4 mx-auto flex items-center justify-between ${
-          wideDesktopBottomBar ? "max-w-[375px] md:max-w-[min(100%,1200px)]" : "max-w-[375px]"
-        }`}
+        className={`fixed bottom-0 left-0 right-0 bg-background border-t border-border px-page py-4 mx-auto ${
+          sectionIndex === 2 ? "flex flex-col items-stretch gap-0" : "flex flex-row items-center justify-between"
+        } ${wideDesktopBottomBar ? "max-w-[375px] md:max-w-[min(100%,1200px)]" : "max-w-[375px]"}`}
       >
-        <button
-          type="button"
-          onClick={() => {
-            if (sectionIndex === 2) {
-              saveOnboardingDraft({ answers, sectionIndex: 1, q2Other });
-              navigate("/onboarding/staples");
-            } else if (sectionIndex === 1) {
-              saveOnboardingDraft({ answers, sectionIndex: 0, q2Other });
-              navigate("/onboarding");
-            }
-          }}
-          disabled={sectionIndex === 0}
-          className="flex items-center gap-1 text-muted-foreground disabled:opacity-40"
-        >
-          <ChevronLeft className="w-5 h-5" />
-          Back
-        </button>
-        <button
-          type="button"
-          onClick={handleNext}
-          disabled={!canProceed() || isSubmitting}
-          className="flex items-center gap-1 bg-primary text-primary-foreground px-6 py-3 rounded-full disabled:opacity-40"
-        >
-          {getNextButtonLabel()}
-          <ChevronRight className="w-5 h-5" />
-        </button>
+        {sectionIndex === 2 ? (
+          <div className="border-b border-border pb-4 mb-4 w-full">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-1">
+              Your pace
+            </p>
+            <p className="text-[15px] text-foreground mb-1 font-medium">
+              How often should Melu pull from your wishlist?
+            </p>
+            <div className="mt-3 flex w-full justify-between gap-2">
+              {PACE_OPTIONS.map((o) => {
+                const selected = answers.discoveryPace === o.value;
+                return (
+                  <button
+                    key={o.value}
+                    type="button"
+                    onClick={() => update("discoveryPace", o.value)}
+                    className="min-w-0 flex-1 cursor-pointer"
+                  >
+                    <div className="flex flex-col items-center gap-1.5 md:hidden">
+                      <div
+                        className={`flex h-9 w-9 items-center justify-center rounded-full text-[14px] font-medium transition-colors ${
+                          selected
+                            ? "bg-primary text-primary-foreground"
+                            : "border border-border bg-secondary text-foreground"
+                        }`}
+                      >
+                        {o.value}
+                      </div>
+                      <span
+                        className={`text-center text-[11px] leading-tight ${
+                          selected ? "font-medium text-primary" : "text-muted-foreground"
+                        }`}
+                      >
+                        {o.label}
+                      </span>
+                    </div>
+
+                    <div
+                      className={`hidden w-full items-center justify-center rounded-xl px-2 py-3 text-center text-[13px] font-medium leading-[1.3] transition-colors md:flex ${
+                        selected
+                          ? "bg-primary text-primary-foreground"
+                          : "border border-border bg-secondary text-foreground"
+                      }`}
+                    >
+                      {o.label}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+        <div className="flex items-center justify-between w-full">
+          <button
+            type="button"
+            onClick={() => {
+              if (sectionIndex === 2) {
+                saveOnboardingDraft({ answers, sectionIndex: 1, q2Other });
+                navigate("/onboarding/staples");
+              } else if (sectionIndex === 1) {
+                saveOnboardingDraft({ answers, sectionIndex: 0, q2Other });
+                navigate("/onboarding");
+              }
+            }}
+            disabled={sectionIndex === 0}
+            className="flex items-center gap-1 text-muted-foreground disabled:opacity-40"
+          >
+            <ChevronLeft className="w-5 h-5" />
+            Back
+          </button>
+          <button
+            type="button"
+            onClick={handleNext}
+            disabled={!canProceed() || isSubmitting}
+            className="flex items-center gap-1 bg-primary text-primary-foreground px-6 py-3 rounded-full disabled:opacity-40"
+          >
+            {getNextButtonLabel()}
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
       </div>
     </div>
   );

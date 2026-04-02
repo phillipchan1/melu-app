@@ -17,7 +17,14 @@ import { buttonVariants } from "../components/ui/button";
 import { clearOnboardingDraft } from "../lib/onboardingDraft";
 import type { ChefCard as ChefCardType, Staple } from "../lib/api";
 import { fetchChefCard, fetchStaples, resetProfile } from "../lib/api";
+import {
+  clearChefCardCache,
+  loadChefCardCache,
+  saveChefCardCache,
+  type ChefCardCachePayload,
+} from "../lib/chefCardCache";
 import { clearMealsPreviewCache } from "../lib/mealsPreviewCache";
+import { supabase } from "../lib/supabase";
 import { useOnboardingChefCardStore } from "../stores/onboardingChefCardStore";
 import { useWeeklyPlanStore } from "../stores/weeklyPlanStore";
 
@@ -40,19 +47,66 @@ export function ProfilePreferences() {
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      setLoading(true);
       setError(null);
+
+      if (!supabase) {
+        setLoading(true);
+        try {
+          const [card, staplesList] = await Promise.all([
+            fetchChefCard(),
+            fetchStaples().catch(() => [] as Staple[]),
+          ]);
+          if (!cancelled) {
+            setChefCard(card);
+            setStaples(staplesList);
+          }
+        } catch (e) {
+          if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load profile");
+        } finally {
+          if (!cancelled) setLoading(false);
+        }
+        return;
+      }
+
+      const { data } = await supabase.auth.getSession();
+      const user = data.session?.user;
+      if (!user || cancelled) {
+        setLoading(false);
+        return;
+      }
+
+      const rawCache = loadChefCardCache();
+      let cacheForUser: ChefCardCachePayload | null = null;
+      if (rawCache && rawCache.userId !== user.id) {
+        clearChefCardCache();
+      } else if (rawCache && rawCache.userId === user.id) {
+        cacheForUser = rawCache;
+        setChefCard(rawCache.chefCard);
+        setLoading(false);
+      } else {
+        setLoading(true);
+      }
+
       try {
         const [card, staplesList] = await Promise.all([
           fetchChefCard(),
           fetchStaples().catch(() => [] as Staple[]),
         ]);
-        if (!cancelled) {
-          setChefCard(card);
-          setStaples(staplesList);
+        if (cancelled) return;
+        setChefCard(card);
+        setStaples(staplesList);
+        if (card) {
+          saveChefCardCache({ userId: user.id, chefCard: card });
+        } else {
+          clearChefCardCache();
         }
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load profile");
+        if (!cancelled) {
+          const msg = e instanceof Error ? e.message : "Failed to load profile";
+          if (!cacheForUser) {
+            setError(msg);
+          }
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -182,6 +236,7 @@ export function ProfilePreferences() {
                   try {
                     await resetProfile();
                     clearMealsPreviewCache();
+                    clearChefCardCache();
                     clearOnboardingDraft();
                     useWeeklyPlanStore.getState().setCurrentPlan(null);
                     useWeeklyPlanStore.getState().setNextPlan(null);

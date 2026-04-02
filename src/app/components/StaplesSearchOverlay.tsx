@@ -1,17 +1,24 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Search, X } from "lucide-react";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 
 import type { Staple } from "../lib/api";
 import {
-  STAPLE_CUISINE_TAB_ALL,
-  STAPLE_CUISINE_TABS_EXTRA,
-  STAPLE_CUISINE_TABS_PRIMARY,
-  type StapleCuisineTabId,
-  filterEntriesByCuisineTab,
-} from "../lib/stapleLibraryFilters";
+  STAPLE_CUISINE_GRID_NODES,
+  countEntriesInNode,
+  countSelectedInNode,
+  filterLibraryByNode,
+  partitionTopAndOverflow,
+  type CuisineGridNodeId,
+} from "../lib/cuisineNodes";
 import { sortLibraryEntriesForAspirations } from "../lib/sortMealsByCuisineAdjacency";
-import { libraryEntryToStaple, searchStapleMeals, type StapleLibraryEntry } from "../lib/searchStapleMeals";
+import {
+  getStapleLibrary,
+  libraryEntryToStaple,
+  libraryHasExactMatchForQuery,
+  searchStapleMeals,
+  type StapleLibraryEntry,
+} from "../lib/searchStapleMeals";
 import { Dialog, DialogOverlay, DialogPortal } from "./ui/dialog";
 import { cn } from "./ui/utils";
 
@@ -53,10 +60,10 @@ function StapleChip({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 shrink-0 pl-3 pr-1 py-2 rounded-full bg-primary text-primary-foreground text-[13px]",
+        "inline-flex items-center gap-1.5 shrink-0 pl-3 pr-1 py-2 rounded-full bg-primary text-primary-foreground text-[13px] min-h-[44px] box-border",
         panel && "w-fit max-w-[min(100%,280px)]",
         !panel && !compact && "max-w-[200px]",
-        compact && "max-w-[120px] py-1.5 pl-2 pr-1",
+        compact && "max-w-[140px] py-1.5 pl-2 pr-1 min-h-[44px]",
       )}
     >
       <span className="truncate">{m.name}</span>
@@ -74,6 +81,31 @@ function StapleChip({
         <X className="w-4 h-4" />
       </button>
     </span>
+  );
+}
+
+function DishPickerChip({
+  entry,
+  selected,
+  onToggle,
+}: Readonly<{
+  entry: StapleLibraryEntry;
+  selected: boolean;
+  onToggle: () => void;
+}>) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={cn(
+        "min-h-[44px] w-full rounded-full px-3 py-2 text-[14px] font-medium leading-snug transition-colors border flex items-center justify-center text-center",
+        selected
+          ? "bg-primary text-primary-foreground border-primary"
+          : "bg-card text-foreground border-border hover:bg-secondary/80",
+      )}
+    >
+      <span className="line-clamp-2">{entry.name}</span>
+    </button>
   );
 }
 
@@ -103,13 +135,12 @@ export function StaplesSearchOverlay({
   onSelectionChange?: (meals: Staple[]) => void;
 }>) {
   const titleId = useId();
-  const tablistPrimaryId = useId();
-  const tablistExtraId = useId();
-  const searchRef = useRef<HTMLInputElement>(null);
-  const [query, setQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [local, setLocal] = useState<Staple[]>(selected);
-  const [activeCuisineTab, setActiveCuisineTab] = useState<StapleCuisineTabId>(STAPLE_CUISINE_TAB_ALL);
-  const [extraTabsOpen, setExtraTabsOpen] = useState(false);
+  const [activeCuisine, setActiveCuisine] = useState<CuisineGridNodeId | null>(null);
+  const [showOverflow, setShowOverflow] = useState(false);
+
+  const library = useMemo(() => getStapleLibrary(), []);
 
   /** Keep local list in sync when parent `selected` changes (draft, navigation, etc.). */
   useEffect(() => {
@@ -119,34 +150,51 @@ export function StaplesSearchOverlay({
   }, [embedded, open, selected]);
 
   /**
-   * Reset filters and focus search only when the overlay opens — not when `selected` changes
-   * from a tap (refocusing the input scrolls the page to the search field).
+   * Reset browse + search when the overlay opens — not when `selected` changes from a tap.
+   * Do not auto-focus search (avoids scroll jump).
    */
   useEffect(() => {
     if (embedded || open) {
-      setQuery("");
-      setActiveCuisineTab(STAPLE_CUISINE_TAB_ALL);
-      setExtraTabsOpen(false);
-      requestAnimationFrame(() => searchRef.current?.focus({ preventScroll: true }));
+      setSearchQuery("");
+      setActiveCuisine(null);
+      setShowOverflow(false);
     }
   }, [embedded, open]);
 
-  const fuseResults = useMemo(() => searchStapleMeals(query), [query]);
+  const fuseResults = useMemo(() => searchStapleMeals(searchQuery), [searchQuery]);
 
-  const browseList = useMemo(() => {
-    const q = query.trim();
-    let ordered = fuseResults;
-    if (mode === "aspirations" && q === "") {
-      ordered = sortLibraryEntriesForAspirations(fuseResults, staplePicks);
+  const trimmed = searchQuery.trim();
+  const isSearchActive = trimmed.length > 0;
+
+  const searchResults = useMemo(() => {
+    if (!isSearchActive) return [];
+    let list = fuseResults;
+    if (mode === "aspirations") {
+      list = sortLibraryEntriesForAspirations(fuseResults, staplePicks);
     }
-    const afterTab = filterEntriesByCuisineTab(ordered, activeCuisineTab);
-    return afterTab.slice(0, LIST_CAP);
-  }, [fuseResults, activeCuisineTab, mode, staplePicks, query]);
+    return list.slice(0, LIST_CAP);
+  }, [fuseResults, isSearchActive, mode, staplePicks]);
 
-  const trimmed = query.trim();
+  const nodeEntries = useMemo(() => {
+    if (!activeCuisine) return [];
+    let entries = filterLibraryByNode([...library], activeCuisine);
+    if (mode === "aspirations") {
+      entries = sortLibraryEntriesForAspirations(entries, staplePicks);
+    }
+    return entries;
+  }, [activeCuisine, library, mode, staplePicks]);
+
+  const { top: topTier, overflow: overflowTier } = useMemo(
+    () => partitionTopAndOverflow(nodeEntries),
+    [nodeEntries],
+  );
+
   const duplicateName = local.some((m) => normalizeName(m.name) === normalizeName(trimmed));
   const showAddCustom =
-    browseList.length === 0 && trimmed.length >= 2 && !duplicateName;
+    isSearchActive &&
+    trimmed.length >= 2 &&
+    !duplicateName &&
+    !libraryHasExactMatchForQuery(trimmed, library);
 
   const canConfirmEmpty = allowEmptyConfirm || mode === "aspirations";
 
@@ -178,20 +226,21 @@ export function StaplesSearchOverlay({
   };
 
   const addCustom = () => {
-    if (!trimmed) return;
+    const q = searchQuery.trim();
+    if (q.length < 2) return;
     const meal: Staple = {
-      id: `custom-${crypto.randomUUID()}`,
-      name: trimmed,
-      cuisine: "Other",
+      id: `custom-${Date.now()}`,
+      name: q,
+      cuisine: "Custom",
       custom: true,
     };
     setLocal((prev) => {
-      if (prev.some((p) => normalizeName(p.name) === normalizeName(trimmed))) return prev;
+      if (prev.some((p) => normalizeName(p.name) === normalizeName(q))) return prev;
       const next = [...prev, meal];
       emitEmbeddedIfNeeded(next);
       return next;
     });
-    setQuery("");
+    setSearchQuery("");
   };
 
   const remove = (id: string) => {
@@ -212,94 +261,140 @@ export function StaplesSearchOverlay({
   const isSelected = (entry: StapleLibraryEntry) =>
     local.some((p) => libraryCatalogKey(p) === entry.id);
 
-  const mobilePreview = local.slice(0, 3);
-  const mobileMore = Math.max(0, local.length - 3);
+  const activeNodeMeta = activeCuisine
+    ? STAPLE_CUISINE_GRID_NODES.find((n) => n.id === activeCuisine)
+    : undefined;
 
-  const renderTabButton = (id: StapleCuisineTabId, label: string) => {
-    const isActive = activeCuisineTab === id;
-    return (
-      <button
-        key={id}
-        type="button"
-        role="tab"
-        aria-selected={isActive}
-        id={`staple-tab-${id}`}
-        onClick={() => setActiveCuisineTab(id)}
-        className={cn(
-          "shrink-0 rounded-full px-4 py-2 text-[14px] transition-colors whitespace-nowrap",
-          isActive ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground hover:bg-border",
-        )}
-      >
-        {label}
-      </button>
-    );
-  };
-
-  const cuisineTabRows = (
-    <div className="flex flex-col gap-2 shrink-0 min-w-0">
-      <div
-        className="flex flex-nowrap gap-2 overflow-x-auto pb-1 scrollbar-thin -mx-page px-page md:mx-0 md:px-0 min-w-0"
-        role="tablist"
-        aria-label="Cuisine filter"
-        id={tablistPrimaryId}
-      >
-        {STAPLE_CUISINE_TABS_PRIMARY.map(({ id, label }) => renderTabButton(id, label))}
-      </div>
-      <button
-        type="button"
-        className="md:hidden text-left text-[13px] font-medium text-primary py-1 -mx-page px-page"
-        onClick={() => setExtraTabsOpen((o) => !o)}
-        aria-expanded={extraTabsOpen}
-      >
-        {extraTabsOpen ? "Hide more cuisines" : "More cuisines"}
-      </button>
-      <div
-        className={cn(
-          "flex flex-nowrap gap-2 overflow-x-auto pb-1 scrollbar-thin -mx-page px-page md:mx-0 md:px-0 min-w-0",
-          !extraTabsOpen && "hidden md:flex",
-        )}
-        role="tablist"
-        aria-label="Additional cuisine filters"
-        id={tablistExtraId}
-      >
-        {STAPLE_CUISINE_TABS_EXTRA.map(({ id, label }) => renderTabButton(id, label))}
-      </div>
+  const cuisineGrid = (
+    <div className="grid grid-cols-2 gap-3">
+      {STAPLE_CUISINE_GRID_NODES.map((node) => {
+        const total = countEntriesInNode(node.id);
+        const picked = countSelectedInNode(local, node.id, library);
+        return (
+          <button
+            key={node.id}
+            type="button"
+            onClick={() => {
+              setActiveCuisine(node.id);
+              setShowOverflow(false);
+            }}
+            className="rounded-2xl border border-border bg-card p-4 text-left transition-colors hover:bg-secondary/60 flex flex-col gap-1 min-h-[100px]"
+          >
+            <span className="text-[24px] leading-none" aria-hidden>
+              {node.emoji}
+            </span>
+            <span className="text-[15px] font-medium text-foreground">{node.label}</span>
+            <span className="text-[12px] text-muted-foreground">
+              {total} {total === 1 ? "dinner" : "dinners"}
+            </span>
+            {picked > 0 ? (
+              <span className="mt-1 inline-flex w-fit rounded-full bg-primary px-2 py-0.5 text-[12px] font-medium text-primary-foreground">
+                {picked} picked
+              </span>
+            ) : null}
+          </button>
+        );
+      })}
     </div>
   );
 
-  const mealList = (
-    <ul className="flex flex-col gap-1">
-      {browseList.map((entry) => {
-        const selectedRow = isSelected(entry);
-        return (
-          <li key={entry.id}>
+  const dishListView =
+    activeCuisine && activeNodeMeta ? (
+      <div className="space-y-4">
+        <button
+          type="button"
+          onClick={() => {
+            setActiveCuisine(null);
+            setShowOverflow(false);
+          }}
+          className="text-[15px] font-medium text-primary py-1 -ml-1"
+        >
+          ← All cuisines
+        </button>
+        <div>
+          <div className="flex items-start gap-2">
+            <span className="text-[24px] leading-none shrink-0" aria-hidden>
+              {activeNodeMeta.emoji}
+            </span>
+            <div>
+              <h3 className="text-[17px] font-semibold text-foreground">{activeNodeMeta.label}</h3>
+              <p className="text-[13px] text-muted-foreground mt-0.5 leading-relaxed">
+                {mode === "aspirations"
+                  ? `${activeNodeMeta.label} dishes you want to learn — add them to your wishlist.`
+                  : `Your go-to ${activeNodeMeta.label} dinners.`}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          {topTier.map((entry) => (
+            <DishPickerChip
+              key={entry.id}
+              entry={entry}
+              selected={isSelected(entry)}
+              onToggle={() => toggleFromLibrary(entry)}
+            />
+          ))}
+        </div>
+
+        {overflowTier.length > 0 ? (
+          <>
             <button
               type="button"
-              onClick={() => toggleFromLibrary(entry)}
-              className={cn(
-                "w-full min-w-0 flex items-center justify-between gap-3 text-left rounded-2xl px-4 py-3 min-h-[52px] transition-colors overflow-hidden",
-                selectedRow
-                  ? "bg-primary/15 border border-primary/40"
-                  : "bg-card border border-border hover:bg-secondary/80",
-              )}
+              onClick={() => setShowOverflow((o) => !o)}
+              className="w-full rounded-2xl border border-dashed border-border py-3 text-[15px] font-medium text-primary bg-card"
             >
-              <span className="min-w-0 flex-1 truncate text-left text-[15px] text-foreground font-normal whitespace-nowrap">
-                {entry.name}
-              </span>
-              <span
-                className={cn(
-                  "shrink-0 ml-3 text-[12px] px-2.5 py-1 rounded-full",
-                  selectedRow ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground",
-                )}
-              >
-                {entry.cuisine}
-              </span>
+              {showOverflow
+                ? `Hide extra ${activeNodeMeta.label} dishes`
+                : `+ ${overflowTier.length} more ${activeNodeMeta.label} dishes`}
             </button>
-          </li>
-        );
-      })}
-    </ul>
-  );
+            {showOverflow ? (
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                {overflowTier.map((entry) => (
+                  <DishPickerChip
+                    key={entry.id}
+                    entry={entry}
+                    selected={isSelected(entry)}
+                    onToggle={() => toggleFromLibrary(entry)}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </>
+        ) : null}
+      </div>
+    ) : null;
+
+  const searchView = isSearchActive ? (
+    <div className="space-y-2">
+      <div className="grid grid-cols-2 gap-2">
+        {searchResults.map((entry) => (
+          <DishPickerChip
+            key={entry.id}
+            entry={entry}
+            selected={isSelected(entry)}
+            onToggle={() => toggleFromLibrary(entry)}
+          />
+        ))}
+      </div>
+      {showAddCustom ? (
+        <button
+          type="button"
+          onClick={addCustom}
+          className="mt-2 w-full text-left rounded-2xl px-4 py-3 min-h-[44px] border border-dashed border-border text-[15px] text-primary font-medium bg-card"
+        >
+          + Add &quot;{trimmed}&quot; as a custom dish
+        </button>
+      ) : null}
+    </div>
+  ) : null;
+
+  const browseContent = (() => {
+    if (isSearchActive) return searchView;
+    if (activeCuisine) return dishListView;
+    return cuisineGrid;
+  })();
 
   const desktopYourStaplesPanel = (
     <div
@@ -323,34 +418,32 @@ export function StaplesSearchOverlay({
           ))
         )}
       </div>
-      {!embedded ? (
+      {embedded ? null : (
         <button
           type="button"
           onClick={handleDone}
           disabled={!canConfirmEmpty && local.length === 0}
-          className="mt-4 w-full bg-primary text-primary-foreground py-3.5 rounded-2xl text-[16px] font-semibold disabled:opacity-40 shrink-0"
+          className="mt-4 w-full bg-primary text-primary-foreground py-3.5 rounded-2xl text-[16px] font-semibold disabled:opacity-40 shrink-0 min-h-[44px]"
         >
           {doneLabel}
         </button>
-      ) : null}
+      )}
     </div>
   );
 
   const body = (
     <>
-      {!embedded ? (
+      {embedded ? (
+        <span id={titleId} className="sr-only">
+          {title}
+        </span>
+      ) : (
         <div className="px-page pt-10 pb-3 shrink-0 md:pt-6">
           <h2 id={titleId} className="text-[20px] font-semibold text-foreground leading-snug">
             {title}
           </h2>
-          <p className="text-[13px] text-muted-foreground mt-1 leading-relaxed">
-            {subtitle}
-          </p>
+          <p className="text-[13px] text-muted-foreground mt-1 leading-relaxed">{subtitle}</p>
         </div>
-      ) : (
-        <span id={titleId} className="sr-only">
-          {title}
-        </span>
       )}
 
       <div
@@ -359,110 +452,82 @@ export function StaplesSearchOverlay({
           embedded ? "md:overflow-visible md:px-0" : "md:overflow-hidden md:px-page md:pb-4",
         )}
       >
-            <div
-              className={cn(
-                "flex flex-col min-h-0 flex-1 min-w-0 md:min-h-0",
-                embedded ? "md:overflow-visible" : "md:overflow-hidden md:h-full",
-              )}
-            >
-              <div className="px-page md:px-0 pb-3 space-y-3 shrink-0">{cuisineTabRows}</div>
-
-              <div className="px-page md:px-0 pb-3 shrink-0">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted-foreground pointer-events-none" />
-                  <input
-                    ref={searchRef}
-                    type="search"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search a dinner..."
-                    className="w-full bg-secondary rounded-2xl pl-10 pr-4 py-3 text-[15px] text-foreground placeholder:text-muted-foreground outline-none border border-border"
-                    autoComplete="off"
-                  />
-                </div>
-              </div>
-
-              <div
-                className={cn(
-                  "flex-1 min-h-0 overflow-y-auto px-page md:px-0",
-                  embedded ? "pb-6 md:overflow-visible md:pb-32" : "pb-[200px] md:pb-0 md:overflow-y-auto",
-                )}
-              >
-                {mealList}
-
-                {showAddCustom && (
-                  <button
-                    type="button"
-                    onClick={addCustom}
-                    className="mt-3 w-full text-left rounded-2xl px-4 py-3 border border-dashed border-border text-[15px] text-primary font-medium bg-card"
-                  >
-                    Add &quot;{trimmed}&quot; as a custom {mode === "aspirations" ? "wishlist meal" : "staple"}
-                  </button>
-                )}
-              </div>
+        <div
+          className={cn(
+            "flex flex-col min-h-0 flex-1 min-w-0 md:min-h-0",
+            embedded ? "md:overflow-visible" : "md:overflow-hidden md:h-full",
+          )}
+        >
+          <div className="px-page md:px-0 pb-3 shrink-0">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted-foreground pointer-events-none" />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search a dinner..."
+                className="w-full bg-secondary rounded-2xl pl-10 pr-4 py-3 min-h-[44px] text-[15px] text-foreground placeholder:text-muted-foreground outline-none border border-border"
+                autoComplete="off"
+              />
             </div>
-
-            {desktopYourStaplesPanel}
           </div>
 
           <div
             className={cn(
-              "md:hidden shrink-0 bg-background border-t border-border flex flex-col gap-3 px-page pt-3 pb-4",
-              !embedded && "fixed bottom-0 left-0 right-0 max-w-[375px] mx-auto z-[60] pb-6",
+              "flex-1 min-h-0 overflow-y-auto px-page md:px-0",
+              embedded ? "pb-6 md:overflow-visible md:pb-32" : "pb-[200px] md:pb-0 md:overflow-y-auto",
             )}
           >
-            <div className="min-h-[52px] flex flex-col gap-2">
-              {local.length === 0 ? (
-                <p className="text-[13px] text-muted-foreground text-center py-1">
-                  {mode === "aspirations"
-                    ? "Nothing yet — add meals you want to learn."
-                    : "Your staples will appear here"}
-                </p>
-              ) : (
-                <>
-                  <p className="text-[12px] text-muted-foreground font-medium">
-                    {local.length} selected
-                  </p>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {mobilePreview.map((m) => (
-                      <span
-                        key={m.id}
-                        className="inline-flex max-w-[100px] items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-[12px] text-foreground"
-                      >
-                        <span className="truncate">{m.name}</span>
-                        {m.custom ? (
-                          <span className="shrink-0 text-[10px] px-1 py-0.5 rounded-full bg-background text-muted-foreground">
-                            Custom
-                          </span>
-                        ) : null}
-                      </span>
-                    ))}
-                    {mobileMore > 0 ? (
-                      <span className="text-[12px] text-muted-foreground font-medium">+{mobileMore} more</span>
-                    ) : null}
-                  </div>
-                </>
-              )}
-            </div>
-            {!embedded ? (
-              <button
-                type="button"
-                onClick={handleDone}
-                disabled={!canConfirmEmpty && local.length === 0}
-                className="w-full bg-primary text-primary-foreground py-3.5 rounded-2xl text-[16px] font-semibold disabled:opacity-40"
-              >
-                {doneLabel}
-              </button>
-            ) : null}
+            {browseContent}
           </div>
+        </div>
+
+        {desktopYourStaplesPanel}
+      </div>
+
+      <div
+        className={cn(
+          "md:hidden shrink-0 bg-background border-t border-border flex flex-col gap-3 px-page pt-3 pb-4",
+          !embedded && "fixed bottom-0 left-0 right-0 max-w-[375px] mx-auto z-[60] pb-6",
+        )}
+      >
+        <div className="min-h-[52px] flex flex-col gap-2">
+          {local.length === 0 ? (
+            <p className="text-[13px] text-muted-foreground text-center py-1">
+              {mode === "aspirations"
+                ? "Nothing yet — add meals you want to learn."
+                : "Your staples will appear here"}
+            </p>
+          ) : (
+            <>
+              <p className="text-[12px] text-muted-foreground font-medium">{local.length} selected</p>
+              <div className="flex flex-wrap items-center gap-2 max-h-[120px] overflow-y-auto">
+                {local.map((m) => (
+                  <StapleChip key={m.id} m={m} compact onRemove={() => remove(m.id)} />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+        {embedded ? null : (
+          <button
+            type="button"
+            onClick={handleDone}
+            disabled={!canConfirmEmpty && local.length === 0}
+            className="w-full bg-primary text-primary-foreground py-3.5 rounded-2xl text-[16px] font-semibold disabled:opacity-40 min-h-[44px]"
+          >
+            {doneLabel}
+          </button>
+        )}
+      </div>
     </>
   );
 
   if (embedded) {
     return (
-      <div className="flex flex-col flex-1 min-h-0 -mx-page px-page" role="region" aria-labelledby={titleId}>
+      <section className="flex flex-col flex-1 min-h-0 -mx-page px-page" aria-labelledby={titleId}>
         {body}
-      </div>
+      </section>
     );
   }
 

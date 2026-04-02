@@ -6,6 +6,7 @@ import { MeluCard, ScreenShell, TopBar } from "../components/design-system";
 import { cn } from "../components/ui/utils";
 import type { Meal, Plan } from "../lib/api";
 import { fetchMealsPreview } from "../lib/api";
+import { clearChefCardCache } from "../lib/chefCardCache";
 import {
   clearMealsPreviewCache,
   loadMealsPreviewCache,
@@ -238,6 +239,7 @@ export function HomeDashboard() {
       const cached = loadMealsPreviewCache();
       if (cached && cached.userId !== user.id) {
         clearMealsPreviewCache();
+        clearChefCardCache();
         setMealPreviewNames({ staples: [], aspirations: [] });
       }
 
