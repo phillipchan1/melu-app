@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { fetchMealsPreview } from "../lib/api";
 import { useOnboardingChefCardStore } from "../stores/onboardingChefCardStore";
@@ -26,6 +26,8 @@ function delay(ms: number): Promise<void> {
 
 export function ChefCardLoading() {
   const navigate = useNavigate();
+  /** Once we have seen a real promise, clearing it after success must not trigger the “no promise” redirect. */
+  const sawChefCardPromiseRef = useRef(false);
   const chefCardPromise = useOnboardingChefCardStore((s) => s.chefCardPromise);
   const setChefCard = useOnboardingChefCardStore((s) => s.setChefCard);
   const setChefCardPromise = useOnboardingChefCardStore((s) => s.setChefCardPromise);
@@ -65,9 +67,13 @@ export function ChefCardLoading() {
 
   useEffect(() => {
     if (chefCardPromise == null) {
-      navigate("/onboarding", { replace: true });
+      if (!sawChefCardPromiseRef.current) {
+        navigate("/onboarding", { replace: true });
+      }
       return;
     }
+
+    sawChefCardPromiseRef.current = true;
 
     let cancelled = false;
     void (async () => {
@@ -76,15 +82,15 @@ export function ChefCardLoading() {
         const card = settled[1];
         if (cancelled) return;
         setChefCard(card);
-        setChefCardPromise(null);
         setChefCardError(false);
         navigate("/onboarding/chef-card", { replace: true });
+        queueMicrotask(() => setChefCardPromise(null));
       } catch {
         if (cancelled) return;
         setChefCardError(true);
         setChefCard(null);
-        setChefCardPromise(null);
         navigate("/onboarding/chef-card", { replace: true });
+        queueMicrotask(() => setChefCardPromise(null));
       }
     })();
 

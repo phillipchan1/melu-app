@@ -4,11 +4,19 @@ import type { ChefCard } from "../lib/api";
 import { generatePlan } from "../lib/api";
 
 import { ChefCard as ChefCardComponent } from "../components/design-system";
-import { cn } from "../components/ui/utils";
 import { useOnboardingChefCardStore } from "../stores/onboardingChefCardStore";
 
-const AUTO_ADVANCE_MS = 4000;
-const PULSE_AT_MS = 3500;
+function planErrorMessage(err: unknown): string {
+  const raw = err instanceof Error ? err.message : String(err);
+  if (
+    raw.includes('Profile not found') ||
+    raw.includes('Complete onboarding') ||
+    raw.includes('No onboarding answers')
+  ) {
+    return "We couldn't load your weekly plan yet. Tap Retry — if this keeps happening, go back and save onboarding again.";
+  }
+  return raw;
+}
 
 const FALLBACK_CARD: ChefCard = {
   buildName: "Your kitchen",
@@ -36,7 +44,6 @@ export function OnboardingChefCard() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pulse, setPulse] = useState(false);
   const didAdvance = useRef(false);
 
   const displayCard = chefCard ?? (chefCardError ? FALLBACK_CARD : null);
@@ -52,7 +59,7 @@ export function OnboardingChefCard() {
       navigate("/plan", { state: { plan } });
     } catch (err) {
       didAdvance.current = false;
-      setError(err instanceof Error ? err.message : "Failed to generate plan");
+      setError(planErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -64,52 +71,49 @@ export function OnboardingChefCard() {
     }
   }, [chefCard, chefCardError, navigate]);
 
-  useEffect(() => {
-    if (!displayCard) return;
-    const t = globalThis.setTimeout(() => {
-      void goToPlan();
-    }, AUTO_ADVANCE_MS);
-    return () => globalThis.clearTimeout(t);
-  }, [displayCard, goToPlan]);
-
-  useEffect(() => {
-    const t = globalThis.setTimeout(() => setPulse(true), PULSE_AT_MS);
-    const t2 = globalThis.setTimeout(() => setPulse(false), AUTO_ADVANCE_MS);
-    return () => {
-      globalThis.clearTimeout(t);
-      globalThis.clearTimeout(t2);
-    };
-  }, []);
-
   if (!displayCard) {
     return null;
   }
 
   return (
-    <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center px-page py-12">
-      <button
-        type="button"
-        onClick={() => void goToPlan()}
-        disabled={loading}
-        className={cn(
-          "cursor-pointer border-0 bg-transparent p-0 text-left disabled:opacity-60 max-w-[340px] w-full rounded-2xl transition-[box-shadow] duration-500",
-          pulse && "shadow-[0_0_28px_rgba(0,0,0,0.18)]",
-        )}
-      >
+    <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center px-page py-12 gap-6">
+      {/*
+        Do not wrap ChefCard in <button> — the card contains "See your full profile" (nested buttons break clicks).
+      */}
+      <div className="w-full max-w-[340px]">
         <ChefCardComponent card={displayCard} chefCardError={chefCardError} />
-      </button>
+      </div>
+
       {chefCardError ? (
-        <p className="mt-6 text-[14px] text-muted-foreground text-center max-w-xs">
-          We&apos;ll refine this as you use Melu.
-        </p>
+        <div className="text-[14px] text-muted-foreground text-center max-w-xs space-y-2">
+          <p>We&apos;ll refine this as you use Melu.</p>
+        </div>
       ) : (
-        <p className="mt-6 text-[14px] text-muted-foreground text-center max-w-xs">
+        <p className="text-[14px] text-muted-foreground text-center max-w-xs">
           Your plans get smarter the more you use{"\u00A0"}Melu.
         </p>
       )}
 
+      <div className="flex flex-col items-center gap-3 w-full max-w-[400px]">
+        <button
+          type="button"
+          onClick={() => void goToPlan()}
+          disabled={loading}
+          className="w-full rounded-full bg-primary px-6 py-3.5 text-[16px] font-semibold text-primary-foreground disabled:opacity-60"
+        >
+          {loading ? "Building your plan…" : "Open my weekly plan"}
+        </button>
+        <button
+          type="button"
+          onClick={() => navigate("/home")}
+          className="text-[14px] text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+        >
+          Go to home
+        </button>
+      </div>
+
       {error && (
-        <div className="flex flex-col items-center gap-3 mb-4 mt-4">
+        <div className="flex flex-col items-center gap-3">
           <p className="text-sm text-destructive text-center max-w-xs">{error}</p>
           <button
             type="button"

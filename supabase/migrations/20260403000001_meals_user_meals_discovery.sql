@@ -1,5 +1,5 @@
 -- Catalog meals (aligns with rotation-meal-library.json slugs). IDs are uuid v5 in namespace 6ba7b811-9dad-11d1-80b4-00c04fd430c8.
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
 
 CREATE TABLE IF NOT EXISTS public.meals (
   id UUID PRIMARY KEY,
@@ -17,131 +17,131 @@ CREATE POLICY "Meals catalog readable by authenticated users"
   USING (true);
 
 INSERT INTO public.meals (id, catalog_slug, name, cuisine)
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'tacos'), 'tacos', 'Tacos', 'Mexican'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'tacos'), 'tacos', 'Tacos', 'Mexican'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'enchiladas'), 'enchiladas', 'Enchiladas', 'Mexican'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'enchiladas'), 'enchiladas', 'Enchiladas', 'Mexican'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'burrito-bowl'), 'burrito-bowl', 'Burrito bowl', 'Mexican'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'burrito-bowl'), 'burrito-bowl', 'Burrito bowl', 'Mexican'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'quesadillas'), 'quesadillas', 'Quesadillas', 'Mexican'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'quesadillas'), 'quesadillas', 'Quesadillas', 'Mexican'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'spaghetti-marinara'), 'spaghetti-marinara', 'Spaghetti marinara', 'Italian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'spaghetti-marinara'), 'spaghetti-marinara', 'Spaghetti marinara', 'Italian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'penne-arrabbiata'), 'penne-arrabbiata', 'Penne arrabbiata', 'Italian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'penne-arrabbiata'), 'penne-arrabbiata', 'Penne arrabbiata', 'Italian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'cacio-e-pepe'), 'cacio-e-pepe', 'Cacio e pepe', 'Italian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'cacio-e-pepe'), 'cacio-e-pepe', 'Cacio e pepe', 'Italian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'chicken-parm'), 'chicken-parm', 'Chicken parmesan', 'Italian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'chicken-parm'), 'chicken-parm', 'Chicken parmesan', 'Italian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'lasagna'), 'lasagna', 'Lasagna', 'Italian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'lasagna'), 'lasagna', 'Lasagna', 'Italian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'pizza-homemade'), 'pizza-homemade', 'Homemade pizza', 'Italian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'pizza-homemade'), 'pizza-homemade', 'Homemade pizza', 'Italian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'grilled-cheese'), 'grilled-cheese', 'Grilled cheese', 'American'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'grilled-cheese'), 'grilled-cheese', 'Grilled cheese', 'American'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'burgers'), 'burgers', 'Burgers', 'American'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'burgers'), 'burgers', 'Burgers', 'American'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'mac-cheese'), 'mac-cheese', 'Mac and cheese', 'American'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'mac-cheese'), 'mac-cheese', 'Mac and cheese', 'American'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'fried-chicken'), 'fried-chicken', 'Fried chicken', 'American'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'fried-chicken'), 'fried-chicken', 'Fried chicken', 'American'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'bbq-ribs'), 'bbq-ribs', 'BBQ ribs', 'American'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'bbq-ribs'), 'bbq-ribs', 'BBQ ribs', 'American'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'meatloaf'), 'meatloaf', 'Meatloaf', 'American'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'meatloaf'), 'meatloaf', 'Meatloaf', 'American'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'pot-roast'), 'pot-roast', 'Pot roast', 'American'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'pot-roast'), 'pot-roast', 'Pot roast', 'American'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'salmon-baked'), 'salmon-baked', 'Baked salmon', 'American'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'salmon-baked'), 'salmon-baked', 'Baked salmon', 'American'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'tuna-casserole'), 'tuna-casserole', 'Tuna casserole', 'American'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'tuna-casserole'), 'tuna-casserole', 'Tuna casserole', 'American'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'stir-fry'), 'stir-fry', 'Chicken stir-fry', 'Asian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'stir-fry'), 'stir-fry', 'Chicken stir-fry', 'Asian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'fried-rice'), 'fried-rice', 'Fried rice', 'Asian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'fried-rice'), 'fried-rice', 'Fried rice', 'Asian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'teriyaki-chicken'), 'teriyaki-chicken', 'Teriyaki chicken', 'Asian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'teriyaki-chicken'), 'teriyaki-chicken', 'Teriyaki chicken', 'Asian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'beef-broccoli'), 'beef-broccoli', 'Beef and broccoli', 'Asian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'beef-broccoli'), 'beef-broccoli', 'Beef and broccoli', 'Asian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'pad-thai'), 'pad-thai', 'Pad Thai', 'Asian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'pad-thai'), 'pad-thai', 'Pad Thai', 'Asian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'thai-green-curry'), 'thai-green-curry', 'Thai green curry', 'Asian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'thai-green-curry'), 'thai-green-curry', 'Thai green curry', 'Asian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'ramen'), 'ramen', 'Ramen', 'Asian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'ramen'), 'ramen', 'Ramen', 'Asian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'sushi-night'), 'sushi-night', 'Sushi night', 'Asian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'sushi-night'), 'sushi-night', 'Sushi night', 'Asian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'bibimbap'), 'bibimbap', 'Bibimbap', 'Asian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'bibimbap'), 'bibimbap', 'Bibimbap', 'Asian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'korean-bbq'), 'korean-bbq', 'Korean BBQ', 'Asian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'korean-bbq'), 'korean-bbq', 'Korean BBQ', 'Asian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'butter-chicken'), 'butter-chicken', 'Butter chicken', 'Indian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'butter-chicken'), 'butter-chicken', 'Butter chicken', 'Indian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'chicken-tikka'), 'chicken-tikka', 'Chicken tikka masala', 'Indian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'chicken-tikka'), 'chicken-tikka', 'Chicken tikka masala', 'Indian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'dal'), 'dal', 'Dal with rice', 'Indian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'dal'), 'dal', 'Dal with rice', 'Indian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'chana-masala'), 'chana-masala', 'Chana masala', 'Indian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'chana-masala'), 'chana-masala', 'Chana masala', 'Indian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'falafel-bowl'), 'falafel-bowl', 'Falafel bowl', 'Middle Eastern'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'falafel-bowl'), 'falafel-bowl', 'Falafel bowl', 'Middle Eastern'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'shawarma'), 'shawarma', 'Chicken shawarma', 'Middle Eastern'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'shawarma'), 'shawarma', 'Chicken shawarma', 'Middle Eastern'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'greek-salad'), 'greek-salad', 'Greek salad with chicken', 'Greek'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'greek-salad'), 'greek-salad', 'Greek salad with chicken', 'Greek'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'moussaka'), 'moussaka', 'Moussaka', 'Greek'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'moussaka'), 'moussaka', 'Moussaka', 'Greek'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'fish-tacos'), 'fish-tacos', 'Fish tacos', 'Mexican'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'fish-tacos'), 'fish-tacos', 'Fish tacos', 'Mexican'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'carnitas'), 'carnitas', 'Carnitas', 'Mexican'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'carnitas'), 'carnitas', 'Carnitas', 'Mexican'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'fajitas'), 'fajitas', 'Chicken fajitas', 'Mexican'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'fajitas'), 'fajitas', 'Chicken fajitas', 'Mexican'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'chili'), 'chili', 'Chili', 'American'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'chili'), 'chili', 'Chili', 'American'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'soup-sandwich'), 'soup-sandwich', 'Soup and sandwich', 'American'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'soup-sandwich'), 'soup-sandwich', 'Soup and sandwich', 'American'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'breakfast-dinner'), 'breakfast-dinner', 'Breakfast for dinner', 'American'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'breakfast-dinner'), 'breakfast-dinner', 'Breakfast for dinner', 'American'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'sheet-pan-chicken'), 'sheet-pan-chicken', 'Sheet pan chicken and veggies', 'Mediterranean'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'sheet-pan-chicken'), 'sheet-pan-chicken', 'Sheet pan chicken and veggies', 'Mediterranean'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'med-bowl'), 'med-bowl', 'Mediterranean grain bowl', 'Mediterranean'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'med-bowl'), 'med-bowl', 'Mediterranean grain bowl', 'Mediterranean'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'salmon-pesto'), 'salmon-pesto', 'Salmon with pesto', 'Mediterranean'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'salmon-pesto'), 'salmon-pesto', 'Salmon with pesto', 'Mediterranean'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'roast-chicken'), 'roast-chicken', 'Roast chicken', 'French'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'roast-chicken'), 'roast-chicken', 'Roast chicken', 'French'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'coq-au-vin'), 'coq-au-vin', 'Coq au vin', 'French'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'coq-au-vin'), 'coq-au-vin', 'Coq au vin', 'French'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'steak-frites'), 'steak-frites', 'Steak frites', 'French'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'steak-frites'), 'steak-frites', 'Steak frites', 'French'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'pho'), 'pho', 'Pho', 'Asian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'pho'), 'pho', 'Pho', 'Asian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'banh-mi'), 'banh-mi', 'Banh mi bowls', 'Asian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'banh-mi'), 'banh-mi', 'Banh mi bowls', 'Asian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'jambalaya'), 'jambalaya', 'Jambalaya', 'American'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'jambalaya'), 'jambalaya', 'Jambalaya', 'American'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'gumbo'), 'gumbo', 'Gumbo', 'American'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'gumbo'), 'gumbo', 'Gumbo', 'American'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'tofu-stirfry'), 'tofu-stirfry', 'Tofu stir-fry', 'Asian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'tofu-stirfry'), 'tofu-stirfry', 'Tofu stir-fry', 'Asian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'veggie-tacos'), 'veggie-tacos', 'Veggie tacos', 'Mexican'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'veggie-tacos'), 'veggie-tacos', 'Veggie tacos', 'Mexican'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'caesar-salad'), 'caesar-salad', 'Caesar salad with protein', 'American'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'caesar-salad'), 'caesar-salad', 'Caesar salad with protein', 'American'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'cobb-salad'), 'cobb-salad', 'Cobb salad', 'American'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'cobb-salad'), 'cobb-salad', 'Cobb salad', 'American'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'hot-dogs'), 'hot-dogs', 'Hot dogs and sides', 'American'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'hot-dogs'), 'hot-dogs', 'Hot dogs and sides', 'American'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'sloppy-joes'), 'sloppy-joes', 'Sloppy Joes', 'American'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'sloppy-joes'), 'sloppy-joes', 'Sloppy Joes', 'American'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'shepherds-pie'), 'shepherds-pie', 'Shepherd''s pie', 'American'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'shepherds-pie'), 'shepherds-pie', 'Shepherd''s pie', 'American'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'tikka-veggie'), 'tikka-veggie', 'Vegetable tikka masala', 'Indian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'tikka-veggie'), 'tikka-veggie', 'Vegetable tikka masala', 'Indian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'poke-bowl'), 'poke-bowl', 'Poke bowl', 'Asian'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'poke-bowl'), 'poke-bowl', 'Poke bowl', 'Asian'
 UNION ALL
-SELECT uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'hawaiian-plate'), 'hawaiian-plate', 'Hawaiian plate lunch', 'American'
+SELECT extensions.uuid_generate_v5('6ba7b811-9dad-11d1-80b4-00c04fd430c8'::uuid, 'hawaiian-plate'), 'hawaiian-plate', 'Hawaiian plate lunch', 'American'
 ON CONFLICT (catalog_slug) DO NOTHING;
 
 -- user_meals: rotation staples vs aspirations (single table, type discriminant)
@@ -159,6 +159,11 @@ CREATE INDEX IF NOT EXISTS idx_user_meals_user_id ON public.user_meals(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_meals_type ON public.user_meals(type);
 
 ALTER TABLE public.user_meals ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can read own user_meals" ON public.user_meals;
+DROP POLICY IF EXISTS "Users can insert own user_meals" ON public.user_meals;
+DROP POLICY IF EXISTS "Users can update own user_meals" ON public.user_meals;
+DROP POLICY IF EXISTS "Users can delete own user_meals" ON public.user_meals;
 
 CREATE POLICY "Users can read own user_meals"
   ON public.user_meals FOR SELECT

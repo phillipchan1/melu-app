@@ -18,6 +18,11 @@ create index if not exists staples_user_sort_idx on public.staples (user_id, sor
 
 alter table public.staples enable row level security;
 
+drop policy if exists "Users can read own staples" on public.staples;
+drop policy if exists "Users can insert own staples" on public.staples;
+drop policy if exists "Users can update own staples" on public.staples;
+drop policy if exists "Users can delete own staples" on public.staples;
+
 create policy "Users can read own staples"
   on public.staples for select
   using (auth.uid() = user_id);

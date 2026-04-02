@@ -15,6 +15,10 @@ create table if not exists public.profiles (
 -- RLS: users can only read/write their own profile
 alter table public.profiles enable row level security;
 
+drop policy if exists "Users can read own profile" on public.profiles;
+drop policy if exists "Users can insert own profile" on public.profiles;
+drop policy if exists "Users can update own profile" on public.profiles;
+
 create policy "Users can read own profile"
   on public.profiles for select
   using (auth.uid() = user_id);
@@ -42,6 +46,8 @@ create table if not exists public.build_definitions (
 );
 
 alter table public.build_definitions enable row level security;
+
+drop policy if exists "Build definitions are readable by all" on public.build_definitions;
 
 create policy "Build definitions are readable by all"
   on public.build_definitions for select
