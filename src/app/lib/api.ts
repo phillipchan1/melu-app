@@ -73,9 +73,6 @@ export interface Staple {
   libraryMealId?: string;
 }
 
-/** @deprecated Use Staple */
-export type RotationMeal = Staple;
-
 export interface OnboardingAnswers {
   q1: { adults: number; kids: number; kidAges?: string[] };
   q2: string[];
@@ -86,11 +83,11 @@ export interface OnboardingAnswers {
   q5: string[];
   /** Q6 — weeknight cook time */
   q6: string;
-  /** Q7 — dinner staples / rotation (canonical) */
+  /** Q7 — dinner staples (canonical) */
   staples: Staple[];
   /** Wishlist meals from library (onboarding step 3) */
   aspirations: Staple[];
-  /** 1–5 — how often Melu introduces aspiration vs rotation (default 2 = Mostly familiar) */
+  /** 1–5 — how often Melu introduces aspirations vs staples (default 2 = Mostly familiar) */
   discoveryPace: number;
 }
 
@@ -107,10 +104,10 @@ export interface ChefCard {
   tagline?: string;
   comparisons: ChefCardComparison[];
   dimensionScores: Record<string, number>;
-  /** @deprecated Prefer rotationCuisineTags from server */
+  /** @deprecated Prefer stapleCuisineTags from server */
   cuisineTags: string[];
-  /** Top 3 cuisines from rotation user_meals (Zone 1) */
-  rotationCuisineTags?: string[];
+  /** Top 3 cuisines from staple user_meals (Zone 1) */
+  stapleCuisineTags?: string[];
   /** Up to 2 aspiration meal display names (Zone 2) */
   aspirationMeals?: string[];
 }
@@ -153,9 +150,9 @@ export interface Meal {
   difficulty: 'easy' | 'medium' | 'hard';
   ingredients: string[];
   reasonTag: string;
-  /** Catalog meal id when from rotation library */
+  /** Catalog meal id when from staple library */
   mealId?: string;
-  sourceType?: 'rotation' | 'aspiration';
+  sourceType?: 'staple' | 'aspiration';
 }
 
 export interface Plan {
@@ -270,7 +267,7 @@ export async function postChefCardGenerate(): Promise<ChefCard> {
 
 export interface MealsPreviewResponse {
   ok: boolean;
-  topRotationMeals: string[];
+  topStapleMeals: string[];
   topAspirations: string[];
 }
 

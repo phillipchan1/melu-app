@@ -1,8 +1,8 @@
-const STORAGE_KEY = "melu_meals_preview_v1";
+const STORAGE_KEY = "melu_meals_preview_v2";
 
 export interface MealsPreviewCachePayload {
   userId: string;
-  topRotationMeals: string[];
+  topStapleMeals: string[];
   topAspirations: string[];
 }
 
@@ -14,7 +14,7 @@ export function loadMealsPreviewCache(): MealsPreviewCachePayload | null {
     if (typeof p.userId !== "string" || p.userId.length === 0) return null;
     return {
       userId: p.userId,
-      topRotationMeals: Array.isArray(p.topRotationMeals) ? p.topRotationMeals : [],
+      topStapleMeals: Array.isArray(p.topStapleMeals) ? p.topStapleMeals : [],
       topAspirations: Array.isArray(p.topAspirations) ? p.topAspirations : [],
     };
   } catch {
@@ -33,6 +33,7 @@ export function saveMealsPreviewCache(payload: MealsPreviewCachePayload): void {
 export function clearMealsPreviewCache(): void {
   try {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem("melu_meals_preview_v1");
   } catch {
     // ignore
   }

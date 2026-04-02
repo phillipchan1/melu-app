@@ -19,9 +19,9 @@ function ChefCard({ card, chefCardError = false }: Readonly<ChefCardProps>) {
   const dimensions = ["Comfort", "Speed", "Boldness", "Discovery", "Nourishment"];
   const [profileOpen, setProfileOpen] = useState(false);
 
-  const rotationTags =
-    card.rotationCuisineTags && card.rotationCuisineTags.length > 0
-      ? card.rotationCuisineTags
+  const stapleTags =
+    card.stapleCuisineTags && card.stapleCuisineTags.length > 0
+      ? card.stapleCuisineTags
       : card.cuisineTags;
 
   const aspirations = card.aspirationMeals ?? [];
@@ -35,7 +35,7 @@ function ChefCard({ card, chefCardError = false }: Readonly<ChefCardProps>) {
           <p className="text-[14px] text-primary-foreground/90 mt-1 font-normal">{card.tagline}</p>
         ) : null}
         <div className="mt-3 flex justify-center gap-2 flex-wrap">
-          {rotationTags.map((tag) => (
+          {stapleTags.map((tag) => (
             <span
               key={tag}
               className="bg-primary-foreground/20 rounded-full px-3 py-1 text-[12px] text-primary-foreground"

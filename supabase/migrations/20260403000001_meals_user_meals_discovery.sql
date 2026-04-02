@@ -1,4 +1,4 @@
--- Catalog meals (aligns with rotation-meal-library.json slugs). IDs are uuid v5 in namespace 6ba7b811-9dad-11d1-80b4-00c04fd430c8.
+-- Catalog meals (aligns with staple-meal-library.json slugs). IDs are uuid v5 in namespace 6ba7b811-9dad-11d1-80b4-00c04fd430c8.
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
 
 CREATE TABLE IF NOT EXISTS public.meals (

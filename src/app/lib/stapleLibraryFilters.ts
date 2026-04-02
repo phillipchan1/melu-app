@@ -1,4 +1,4 @@
-import type { RotationLibraryEntry } from './searchRotationMeals';
+import type { StapleLibraryEntry } from './searchStapleMeals';
 
 /** Canonical tab id; `all` shows every cuisine. */
 export type StapleCuisineTabId =
@@ -35,7 +35,7 @@ export const STAPLE_CUISINE_TABS_EXTRA: ReadonlyArray<{ id: StapleCuisineTabId; 
  * Whether a library row belongs to the active cuisine tab.
  * Mediterranean tab includes Greek + Mediterranean entries from the JSON catalog.
  */
-export function cuisineMatchesStapleTab(entry: RotationLibraryEntry, tabId: StapleCuisineTabId): boolean {
+export function cuisineMatchesStapleTab(entry: StapleLibraryEntry, tabId: StapleCuisineTabId): boolean {
   if (tabId === 'all') return true;
   if (tabId === 'Mediterranean') {
     return entry.cuisine === 'Mediterranean' || entry.cuisine === 'Greek';
@@ -44,9 +44,9 @@ export function cuisineMatchesStapleTab(entry: RotationLibraryEntry, tabId: Stap
 }
 
 export function filterEntriesByCuisineTab(
-  entries: RotationLibraryEntry[],
+  entries: StapleLibraryEntry[],
   tabId: StapleCuisineTabId,
-): RotationLibraryEntry[] {
+): StapleLibraryEntry[] {
   if (tabId === 'all') return entries;
   return entries.filter((e) => cuisineMatchesStapleTab(e, tabId));
 }

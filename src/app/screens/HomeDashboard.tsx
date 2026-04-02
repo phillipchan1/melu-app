@@ -36,9 +36,9 @@ function getGreeting(): string {
   return "Good evening";
 }
 
-function mealSourceType(m: Meal): "rotation" | "aspiration" | undefined {
+function mealSourceType(m: Meal): "staple" | "aspiration" | undefined {
   const raw = (m as { source_type?: string }).source_type ?? m.sourceType;
-  if (raw === "rotation" || raw === "aspiration") return raw;
+  if (raw === "staple" || raw === "aspiration") return raw;
   return undefined;
 }
 
@@ -87,7 +87,7 @@ function PillRow({
   );
 }
 
-function SourceTag({ kind }: { kind: "rotation" | "aspiration" }) {
+function SourceTag({ kind }: { kind: "staple" | "aspiration" }) {
   const label = kind === "aspiration" ? "Aspiration" : "Staple";
   return (
     <span
@@ -122,7 +122,7 @@ function WeekPlanCard({
                   {meal.name}
                 </span>
                 {src === "aspiration" ? <SourceTag kind="aspiration" /> : null}
-                {src === "rotation" ? <SourceTag kind="rotation" /> : null}
+                {src === "staple" ? <SourceTag kind="staple" /> : null}
               </div>
             </div>
             {index < meals.length - 1 ? (
@@ -204,7 +204,7 @@ function readInitialPreview(): { staples: string[]; aspirations: string[] } {
   const cached = loadMealsPreviewCache();
   if (!cached) return { staples: [], aspirations: [] };
   return {
-    staples: cached.topRotationMeals,
+    staples: cached.topStapleMeals,
     aspirations: cached.topAspirations,
   };
 }
@@ -244,12 +244,12 @@ export function HomeDashboard() {
       try {
         const preview = await fetchMealsPreview();
         if (cancelled) return;
-        const staples = preview.topRotationMeals ?? [];
+        const staples = preview.topStapleMeals ?? [];
         const aspirations = preview.topAspirations ?? [];
         setMealPreviewNames({ staples, aspirations });
         saveMealsPreviewCache({
           userId: user.id,
-          topRotationMeals: staples,
+          topStapleMeals: staples,
           topAspirations: aspirations,
         });
       } catch {

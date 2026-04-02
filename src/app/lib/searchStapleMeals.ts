@@ -1,9 +1,9 @@
 import Fuse from 'fuse.js';
 
 import type { Staple } from './api';
-import libraryJson from '../data/rotation-meal-library.json';
+import libraryJson from '../data/staple-meal-library.json';
 
-export interface RotationLibraryEntry {
+export interface StapleLibraryEntry {
   id: string;
   name: string;
   cuisine: string;
@@ -11,13 +11,13 @@ export interface RotationLibraryEntry {
   aliases?: string[];
 }
 
-const library = libraryJson as RotationLibraryEntry[];
+const library = libraryJson as StapleLibraryEntry[];
 
-export function getRotationLibrary(): readonly RotationLibraryEntry[] {
+export function getStapleLibrary(): readonly StapleLibraryEntry[] {
   return library;
 }
 
-export function createRotationFuse(): Fuse<RotationLibraryEntry> {
+export function createStapleFuse(): Fuse<StapleLibraryEntry> {
   return new Fuse(library, {
     keys: [
       { name: 'name', weight: 0.65 },
@@ -29,12 +29,15 @@ export function createRotationFuse(): Fuse<RotationLibraryEntry> {
   });
 }
 
-const fuseSingleton = createRotationFuse();
+const fuseSingleton = createStapleFuse();
 
 /**
  * Returns ranked library matches. Empty query returns the first chunk of the catalog for browsing.
  */
-export function searchRotationMeals(query: string, fuse: Fuse<RotationLibraryEntry> = fuseSingleton): RotationLibraryEntry[] {
+export function searchStapleMeals(
+  query: string,
+  fuse: Fuse<StapleLibraryEntry> = fuseSingleton,
+): StapleLibraryEntry[] {
   const q = query.trim();
   if (!q) {
     return [...library];
@@ -42,7 +45,7 @@ export function searchRotationMeals(query: string, fuse: Fuse<RotationLibraryEnt
   return fuse.search(q).map((r) => r.item);
 }
 
-export function libraryEntryToStaple(entry: RotationLibraryEntry): Staple {
+export function libraryEntryToStaple(entry: StapleLibraryEntry): Staple {
   return {
     id: entry.id,
     name: entry.name,
@@ -52,6 +55,3 @@ export function libraryEntryToStaple(entry: RotationLibraryEntry): Staple {
     libraryMealId: entry.id,
   };
 }
-
-/** @deprecated Use libraryEntryToStaple */
-export const libraryEntryToRotationMeal = libraryEntryToStaple;

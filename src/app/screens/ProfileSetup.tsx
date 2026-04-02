@@ -32,6 +32,12 @@ const SECTIONS = [
     headline: "What does your family already love?",
     subtitle: "These anchor every plan.",
   },
+  {
+    id: "aspirations" as const,
+    kicker: "Last up",
+    headline: "Dream a little.",
+    subtitle: "Pick meals you want to learn — Melu will get you there.",
+  },
 ] as const;
 
 const Q2_OPTIONS = [
@@ -472,7 +478,7 @@ export function ProfileSetup() {
           sectionIndex === 0 ? "px-page md:px-8" : "px-page"
         } ${
           sectionIndex === 1 || sectionIndex === 2
-            ? "flex flex-col min-h-0 overflow-hidden md:overflow-visible"
+            ? "flex flex-col min-h-0 overflow-hidden md:overflow-visible md:pb-8"
             : sectionIndex === 0
               ? ""
               : "overflow-y-auto"
@@ -575,20 +581,24 @@ export function ProfileSetup() {
         )}
 
         {sectionIndex === 2 && (
-          <div className="space-y-10 flex flex-col flex-1 min-h-0">
-            <div className="flex flex-col flex-1 min-h-0">
-              <h2 className="text-[20px] text-foreground mb-2 font-semibold leading-snug">
-                Dream a little.
-              </h2>
-              <p className="text-[14px] text-muted-foreground mb-4 leading-relaxed">
-                Pick meals you want to learn — Melu will get you there.
+          <div className="flex flex-col flex-1 min-h-0 gap-8 md:gap-10">
+            <div className="flex flex-col shrink-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-1">
+                {section.kicker}
               </p>
+              <h2 className="text-[20px] text-foreground mb-2 font-semibold leading-snug">
+                {section.headline}
+              </h2>
+              <p className="text-[14px] text-muted-foreground mb-4 leading-relaxed">{section.subtitle}</p>
+            </div>
+
+            <div className="flex flex-col flex-1 min-h-0 md:max-h-[min(52vh,560px)] md:shrink">
               <MealSelector
                 embedded
                 open
                 onOpenChange={() => {}}
                 mode="aspirations"
-                rotationStaples={answers.staples}
+                staplePicks={answers.staples}
                 selected={answers.aspirations}
                 onSelectionChange={(items) => update("aspirations", items)}
                 onConfirm={handleAspirationsConfirmed}

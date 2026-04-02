@@ -1,20 +1,20 @@
 import { CUISINE_ADJACENCY } from '../../constants/cuisineAdjacency';
 import type { Staple } from './api';
-import type { RotationLibraryEntry } from './searchRotationMeals';
+import type { StapleLibraryEntry } from './searchStapleMeals';
 
 /**
- * Boost meals whose cuisine appears in adjacency lists for the user's rotation cuisines.
+ * Boost meals whose cuisine appears in adjacency lists for the user's staple cuisines.
  * No filtering — stable secondary sort by cuisine, then name.
  */
 export function sortLibraryEntriesForAspirations(
-  entries: readonly RotationLibraryEntry[],
-  rotationStaples: readonly Staple[],
-): RotationLibraryEntry[] {
-  const rotationCuisines = [
-    ...new Set(rotationStaples.map((s) => s.cuisine).filter(Boolean)),
+  entries: readonly StapleLibraryEntry[],
+  staplePicks: readonly Staple[],
+): StapleLibraryEntry[] {
+  const stapleCuisines = [
+    ...new Set(staplePicks.map((s) => s.cuisine).filter(Boolean)),
   ];
   const boosted = new Set<string>();
-  for (const c of rotationCuisines) {
+  for (const c of stapleCuisines) {
     const adj = CUISINE_ADJACENCY[c];
     if (!adj) continue;
     for (const x of adj) {

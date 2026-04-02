@@ -45,7 +45,7 @@ export function ChefCardLoading() {
       try {
         const preview = await fetchMealsPreview();
         if (!cancelled) {
-          setMeals(preview.topRotationMeals);
+          setMeals(preview.topStapleMeals);
           setAspirations(preview.topAspirations);
         }
       } catch {

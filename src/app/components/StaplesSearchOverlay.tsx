@@ -11,7 +11,7 @@ import {
   filterEntriesByCuisineTab,
 } from "../lib/stapleLibraryFilters";
 import { sortLibraryEntriesForAspirations } from "../lib/sortMealsByCuisineAdjacency";
-import { libraryEntryToStaple, searchRotationMeals, type RotationLibraryEntry } from "../lib/searchRotationMeals";
+import { libraryEntryToStaple, searchStapleMeals, type StapleLibraryEntry } from "../lib/searchStapleMeals";
 import { Dialog, DialogOverlay, DialogPortal } from "./ui/dialog";
 import { cn } from "./ui/utils";
 
@@ -84,7 +84,7 @@ export function StaplesSearchOverlay({
   onConfirm,
   allowEmptyConfirm = false,
   mode = "staples",
-  rotationStaples = [],
+  staplePicks = [],
   /** Full-screen step body (no Dialog) — use on onboarding step 2; modal remains for aspirations / staples management. */
   embedded = false,
   /** When embedded, called after each selection change so parent state stays in sync (Continue uses answers). */
@@ -97,8 +97,8 @@ export function StaplesSearchOverlay({
   /** When true, Done is enabled with zero items (e.g. staples management screen). */
   allowEmptyConfirm?: boolean;
   mode?: "staples" | "aspirations";
-  /** Rotation picks; used to reorder browse list in aspirations mode */
-  rotationStaples?: Staple[];
+  /** Staple picks from onboarding; used to reorder browse list in aspirations mode */
+  staplePicks?: Staple[];
   embedded?: boolean;
   onSelectionChange?: (meals: Staple[]) => void;
 }>) {
@@ -131,17 +131,17 @@ export function StaplesSearchOverlay({
     }
   }, [embedded, open]);
 
-  const fuseResults = useMemo(() => searchRotationMeals(query), [query]);
+  const fuseResults = useMemo(() => searchStapleMeals(query), [query]);
 
   const browseList = useMemo(() => {
     const q = query.trim();
     let ordered = fuseResults;
     if (mode === "aspirations" && q === "") {
-      ordered = sortLibraryEntriesForAspirations(fuseResults, rotationStaples);
+      ordered = sortLibraryEntriesForAspirations(fuseResults, staplePicks);
     }
     const afterTab = filterEntriesByCuisineTab(ordered, activeCuisineTab);
     return afterTab.slice(0, LIST_CAP);
-  }, [fuseResults, activeCuisineTab, mode, rotationStaples, query]);
+  }, [fuseResults, activeCuisineTab, mode, staplePicks, query]);
 
   const trimmed = query.trim();
   const duplicateName = local.some((m) => normalizeName(m.name) === normalizeName(trimmed));
@@ -165,7 +165,7 @@ export function StaplesSearchOverlay({
     }
   };
 
-  const toggleFromLibrary = (entry: RotationLibraryEntry) => {
+  const toggleFromLibrary = (entry: StapleLibraryEntry) => {
     const meal = libraryEntryToStaple(entry);
     setLocal((prev) => {
       const existing = prev.find((p) => libraryCatalogKey(p) === entry.id);
@@ -209,7 +209,7 @@ export function StaplesSearchOverlay({
     }
   };
 
-  const isSelected = (entry: RotationLibraryEntry) =>
+  const isSelected = (entry: StapleLibraryEntry) =>
     local.some((p) => libraryCatalogKey(p) === entry.id);
 
   const mobilePreview = local.slice(0, 3);
