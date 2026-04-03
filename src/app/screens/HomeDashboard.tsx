@@ -1,15 +1,17 @@
-import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useEffect, useLayoutEffect, useState } from "react";
+import { useLocation, useNavigate, type NavigateFunction, type Location } from "react-router";
 
 import { BottomNav } from "../components/BottomNav";
 import { ScreenShell, TopBar } from "../components/design-system";
 import { cn } from "../components/ui/utils";
-import type { Plan, PlanStatus } from "../lib/api";
+import type { Meal, OnboardingAnswers, Plan, PlanStatus } from "../lib/api";
 import { fetchCurrentWeekPlan } from "../lib/api";
 import { clearChefCardCache } from "../lib/chefCardCache";
 import { clearMealsPreviewCache, loadMealsPreviewCache } from "../lib/mealsPreviewCache";
+import { parseOnboardingAnswers } from "../lib/meluSnapshotCopy";
 import { supabase } from "../lib/supabase";
 import { useWeeklyPlanStore } from "../stores/weeklyPlanStore";
+import { Clock } from "lucide-react";
 
 const WEEKDAY_NAMES = [
   "Sunday",
@@ -20,6 +22,21 @@ const WEEKDAY_NAMES = [
   "Friday",
   "Saturday",
 ] as const;
+
+const DAY_TO_ABBREV: Record<string, string> = {
+  monday: "MON",
+  tuesday: "TUE",
+  wednesday: "WED",
+  thursday: "THU",
+  friday: "FRI",
+  saturday: "SAT",
+  sunday: "SUN",
+};
+
+function dayToAbbrev(day: string): string {
+  const key = day.trim().toLowerCase();
+  return DAY_TO_ABBREV[key] ?? day.slice(0, 3).toUpperCase();
+}
 
 function getWeekdayGreeting(): string {
   return `Good ${WEEKDAY_NAMES[new Date().getDay()]}`;
@@ -52,225 +69,260 @@ function firstNameFromSessionUser(user: {
   return { firstName: first, initial };
 }
 
-const MELU_SECTION_LABEL = "text-[10px] font-semibold tracking-[0.08em] text-[#78716C] mb-2";
+type MealWithDayIndex = Meal & { dayIndex?: number };
 
-function StaplePillsRow({ labels }: { labels: string[] }) {
-  const shown = labels.slice(0, 3);
-  const rest = Math.max(0, labels.length - 3);
+/** Maps to Date.getDay(): 0 = Sunday … 6 = Saturday. */
+function mealDayJsIndex(meal: Meal): number | undefined {
+  const ext = meal as MealWithDayIndex;
+  if (typeof ext.dayIndex === "number" && ext.dayIndex >= 0 && ext.dayIndex <= 6) {
+    return ext.dayIndex;
+  }
+  const key = meal.day.trim().toLowerCase();
+  const map: Record<string, number> = {
+    sunday: 0,
+    monday: 1,
+    tuesday: 2,
+    wednesday: 3,
+    thursday: 4,
+    friday: 5,
+    saturday: 6,
+  };
+  return map[key];
+}
+
+/** Prefer exact day match; else first meal on a future day this week (then wraps). */
+function pickMealForAnchorDay(meals: Meal[], anchorJs: number): Meal | undefined {
+  const withIdx = meals.filter((m) => mealDayJsIndex(m) !== undefined);
+  if (withIdx.length === 0) return undefined;
+
+  const exact = withIdx.find((m) => mealDayJsIndex(m) === anchorJs);
+  if (exact) return exact;
+
+  for (let delta = 1; delta <= 7; delta++) {
+    const d = (anchorJs + delta) % 7;
+    const hit = withIdx.find((m) => mealDayJsIndex(m) === d);
+    if (hit) return hit;
+  }
+  return undefined;
+}
+
+/** Monday=1 … Saturday=6, Sunday=7 for Mon–Sun list order. Unknown last. */
+function monSunSortRank(index: number | undefined): number {
+  if (index === undefined) return 99;
+  if (index === 0) return 7;
+  return index;
+}
+
+function sortMealsMonThroughSun(meals: Meal[]): Meal[] {
+  return [...meals].sort((a, b) => {
+    return monSunSortRank(mealDayJsIndex(a)) - monSunSortRank(mealDayJsIndex(b));
+  });
+}
+
+function ingredientsPreviewLine(meal: Meal): string {
+  if (!meal.ingredients?.length) return "";
+  return meal.ingredients.join(", ");
+}
+
+/** One line for Melu Knows You (desktop). Omits if household or cook time missing. */
+function buildFamilyWeeknightLine(answers: OnboardingAnswers | null): string | null {
+  if (!answers?.q1 || !answers.q6) return null;
+  const total = (answers.q1.adults ?? 0) + (answers.q1.kids ?? 0);
+  if (total <= 0) return null;
+  const xByQ6: Record<string, string> = {
+    under_20: "20",
+    "30": "30",
+    "45": "45",
+    "60_plus": "60+",
+  };
+  const x = xByQ6[answers.q6] ?? "30";
+  return `Family of ${total}. About ${x} min on weeknights.`;
+}
+
+const SECTION_LABEL_CLASS =
+  "text-[11px] font-semibold uppercase tracking-[0.08em] text-[#78716C]";
+
+function TonightHeroCard({ meal }: Readonly<{ meal: Meal }>) {
+  const preview = ingredientsPreviewLine(meal);
+  const noopSoon = () => {
+    console.log("coming soon");
+  };
   return (
-    <div>
-      <div className="flex flex-wrap gap-1.5">
-        {shown.map((label, i) => (
-          <span
-            key={`${label}-${i}`}
-            className="inline-block max-w-full truncate rounded-full border border-solid border-[#7C9E7A] bg-white px-3 py-1 text-[12px] font-medium text-[#7C9E7A]"
-          >
-            {label}
-          </span>
-        ))}
+    <div className="w-full rounded-2xl bg-white p-[18px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-border/60">
+      <p className={SECTION_LABEL_CLASS}>Tonight</p>
+      <h2 className="mt-1.5 text-[24px] font-semibold text-[#1C1917] leading-tight">{meal.name}</h2>
+      <div className="mt-2.5 flex flex-wrap gap-2">
+        <span className="inline-flex items-center gap-1 rounded-[100px] bg-[#F0EFED] px-3 py-1 text-[13px] text-[#78716C]">
+          <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden />
+          {meal.cookTime} min
+        </span>
+        <span className="inline-flex items-center rounded-[100px] bg-[#F0EFED] px-3 py-1 text-[13px] text-[#78716C]">
+          {meal.cuisine}
+        </span>
       </div>
-      {rest > 0 ? (
-        <p className="mt-1 text-[12px] text-[#78716C]">+{rest} more</p>
+      {preview ? <p className="mt-2 text-[14px] italic text-[#78716C]">{preview}</p> : null}
+      {meal.reasonTag ? (
+        <p className="mt-1.5 text-[12px] text-[#7C9E7A]">
+          <span aria-hidden>✓ </span>
+          {meal.reasonTag}
+        </p>
       ) : null}
-    </div>
-  );
-}
-
-function AspirationPillsRow({ labels }: { labels: string[] }) {
-  const shown = labels.slice(0, 3);
-  const rest = Math.max(0, labels.length - 3);
-  return (
-    <div>
-      <div className="flex flex-wrap gap-1.5">
-        {shown.map((label, i) => (
-          <span
-            key={`${label}-${i}`}
-            className="inline-block max-w-full truncate rounded-full border-[1.5px] border-dashed border-[#78716C] bg-white px-3 py-1 text-[12px] font-medium text-[#78716C]"
-          >
-            {label}
-          </span>
-        ))}
-      </div>
-      {rest > 0 ? (
-        <p className="mt-1 text-[12px] text-[#78716C]">+{rest} more</p>
-      ) : null}
-    </div>
-  );
-}
-
-/** State C — approved plan (active week). */
-function ThisWeekSummaryCard({ plan, onNavigatePlan }: { plan: Plan; onNavigatePlan: () => void }) {
-  const meals = plan.meals;
-  const shown = meals.slice(0, 3);
-  const rest = Math.max(0, meals.length - 3);
-
-  return (
-    <div className="space-y-3">
-      <button
-        type="button"
-        onClick={onNavigatePlan}
-        className="w-full text-left rounded-2xl bg-card p-[18px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-border/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-      >
-        <div className="flex items-start justify-between gap-2 mb-3">
-          <span className="text-[13px] font-medium text-foreground">This week</span>
-          <span className="shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-[#EBF2EB] text-[#2D572C]">
-            Approved
-          </span>
-        </div>
-        <ul className="space-y-1.5 mb-1">
-          {shown.map((m, i) => (
-            <li key={`${m.day}-${m.name}-${i}`} className="text-[15px] text-foreground truncate">
-              {m.name}
-            </li>
-          ))}
-        </ul>
-        {rest > 0 ? (
-          <p className="text-[13px] text-muted-foreground">+{rest} more</p>
-        ) : null}
-        <p className="text-[13px] text-primary font-normal mt-3 text-right">View full plan →</p>
-      </button>
-    </div>
-  );
-}
-
-/** State B — draft plan, not yet approved. */
-function DraftWeekSummaryCard({ plan, onReview }: { plan: Plan; onReview: () => void }) {
-  const rows = plan.meals.slice(0, 5);
-  const rest = Math.max(0, plan.meals.length - 5);
-
-  return (
-    <div className="rounded-2xl bg-card p-[18px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-border/60 space-y-4">
-      <p className="text-[11px] font-semibold tracking-[0.08em] text-[#78716C]">READY TO REVIEW</p>
-      <ul className="space-y-1.5">
-        {rows.map((m, i) => (
-          <li key={`${m.day}-${m.name}-${i}`} className="text-[15px] text-foreground truncate">
-            {m.day} · {m.name}
-          </li>
-        ))}
-      </ul>
-      {rest > 0 ? (
-        <p className="text-[13px] text-muted-foreground">+{rest} more</p>
-      ) : null}
-      <button
-        type="button"
-        onClick={onReview}
-        className="w-full rounded-full bg-primary text-primary-foreground h-14 text-[16px] font-semibold"
-      >
-        Review and approve
-      </button>
-    </div>
-  );
-}
-
-function GroceryShortcutCard({ onNavigate }: { onNavigate: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onNavigate}
-      className="w-full rounded-2xl bg-card p-[18px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-border/60 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-    >
-      <span className="text-[15px] font-medium text-foreground">View grocery list</span>
-      <p className="text-[13px] text-muted-foreground mt-1">Ingredients for this week →</p>
-    </button>
-  );
-}
-
-function MeluKnowsYouBlock({
-  stapleNames,
-  aspirationNames,
-  onProfile,
-}: {
-  stapleNames: string[];
-  aspirationNames: string[];
-  onProfile: () => void;
-}) {
-  const hasStaples = stapleNames.length > 0;
-  const hasAspirations = aspirationNames.length > 0;
-  const showOuterCard = hasStaples || hasAspirations;
-
-  return (
-    <div className="flex h-full min-h-0 flex-col md:flex-1 md:self-stretch">
-      <div className="text-[11px] font-semibold tracking-[0.08em] text-muted-foreground mb-2">
-        MELU KNOWS YOU
-      </div>
-
-      {showOuterCard ? (
-        <div
-          className={cn(
-            "flex flex-1 flex-col rounded-xl border border-border/60 bg-card p-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)]",
-            "min-h-0 md:min-h-full",
-          )}
-        >
-          <div className="flex min-h-0 flex-1 flex-col">
-            {hasStaples ? (
-              <div>
-                <h3 className={MELU_SECTION_LABEL}>YOUR STAPLES</h3>
-                <StaplePillsRow labels={stapleNames} />
-                <p className="mt-2 text-[12px] text-[#78716C]">Anchors every plan.</p>
-              </div>
-            ) : null}
-
-            {hasStaples ? <div className="my-3 h-px shrink-0 bg-[#F0EFED]" aria-hidden /> : null}
-
-            <div className={cn(hasStaples ? "" : "flex-1")}>
-              <h3 className={MELU_SECTION_LABEL}>YOUR ASPIRATIONS</h3>
-              {hasAspirations ? (
-                <>
-                  <AspirationPillsRow labels={aspirationNames} />
-                  <p className="mt-2 text-[12px] text-[#78716C]">Introduced at your pace.</p>
-                </>
-              ) : (
-                <>
-                  <p className="text-[12px] text-[#78716C]">No aspirations yet.</p>
-                  <button
-                    type="button"
-                    onClick={onProfile}
-                    className="mt-2 text-left text-[13px] font-medium text-[#7C9E7A]"
-                  >
-                    + Add aspirations
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={onProfile}
-            className="mt-4 block w-full text-right text-[13px] font-normal text-primary"
-          >
-            What Melu knows →
-          </button>
-        </div>
-      ) : (
+      <div className="my-3.5 h-px bg-[#F0EFED]" aria-hidden />
+      <div className="flex items-center justify-between gap-3">
         <button
           type="button"
-          onClick={onProfile}
-          className="block w-full text-right text-[13px] font-normal text-primary md:mt-auto"
+          onClick={noopSoon}
+          className="text-left text-[14px] font-medium text-[#7C9E7A]"
         >
-          What Melu knows →
+          View recipe
         </button>
-      )}
+        <button
+          type="button"
+          onClick={noopSoon}
+          className="text-left text-[14px] font-medium text-[#7C9E7A]"
+        >
+          Get ingredients
+        </button>
+      </div>
+      <button
+        type="button"
+        onClick={noopSoon}
+        className="mt-2.5 block w-full text-left text-[13px] text-[#78716C]"
+      >
+        Need help with this dish? →
+      </button>
+    </div>
+  );
+}
+
+function MeluKnowsYouDesktopCard({
+  familyLine,
+  stapleNames,
+  aspirationName,
+  onNavigateProfile,
+}: Readonly<{
+  familyLine: string | null;
+  stapleNames: string[];
+  aspirationName: string | null;
+  onNavigateProfile: () => void;
+}>) {
+  const shownStaples = stapleNames.slice(0, 3);
+  const rest = Math.max(0, stapleNames.length - 3);
+
+  return (
+    <div className="w-full rounded-2xl bg-white p-[18px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-border/60">
+      <p className={SECTION_LABEL_CLASS}>Melu knows you</p>
+
+      {familyLine ? (
+        <>
+          <p className="mt-3 text-[14px] text-[#1C1917]">{familyLine}</p>
+          <div className="my-3 h-px bg-[#F0EFED]" aria-hidden />
+        </>
+      ) : null}
+
+      <button
+        type="button"
+        onClick={onNavigateProfile}
+        className={cn(
+          "w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg",
+          !familyLine && "mt-3",
+        )}
+      >
+        <p className={cn(SECTION_LABEL_CLASS, "mb-2")}>Your staples</p>
+        <div className="flex flex-wrap gap-1.5">
+          {shownStaples.map((label, i) => (
+            <span
+              key={`${label}-${i}`}
+              className="inline-block max-w-full truncate rounded-[100px] bg-[#F0EFED] px-3 py-1 text-[13px] text-[#1C1917]"
+            >
+              {label}
+            </span>
+          ))}
+          {rest > 0 ? (
+            <span className="inline-block rounded-[100px] bg-[#F0EFED] px-3 py-1 text-[13px] text-[#78716C]">
+              +{rest} more
+            </span>
+          ) : null}
+        </div>
+      </button>
+
+      <div className="my-3 h-px bg-[#F0EFED]" aria-hidden />
+
+      <button
+        type="button"
+        onClick={onNavigateProfile}
+        className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
+      >
+        <p className={cn(SECTION_LABEL_CLASS, "mb-2")}>Working toward</p>
+        {aspirationName ? (
+          <p className="text-[14px] italic text-[#78716C]">{aspirationName}</p>
+        ) : (
+          <span className="text-[14px] font-medium text-[#7C9E7A]">+ Add aspirations</span>
+        )}
+      </button>
+
+      <button
+        type="button"
+        onClick={onNavigateProfile}
+        className="mt-4 block w-full text-right text-[12px] text-[#78716C] hover:underline"
+      >
+        What Melu knows →
+      </button>
+    </div>
+  );
+}
+
+function ThisWeekMealList({
+  sortedMeals,
+  tonightMeal,
+  onViewPlan,
+}: Readonly<{
+  sortedMeals: Meal[];
+  tonightMeal: Meal | undefined;
+  onViewPlan: () => void;
+}>) {
+  return (
+    <div className="mt-6">
+      <div className={cn(SECTION_LABEL_CLASS, "mb-2")}>THIS WEEK</div>
+      <ul className="divide-y divide-[#F0EFED]/80">
+        {sortedMeals.map((m, i) => {
+          const isTonight = m.day === tonightMeal?.day;
+          return (
+            <li
+              key={`${m.day}-${m.name}-${i}`}
+              className={cn(
+                "flex min-h-[36px] items-center gap-2 py-1.5 pl-1",
+                isTonight && "border-l-[3px] border-[#7C9E7A] pl-2 -ml-0.5",
+              )}
+            >
+              <span className="w-9 shrink-0 text-[12px] text-[#78716C]">{dayToAbbrev(m.day)}</span>
+              <span
+                className={cn(
+                  "min-w-0 flex-1 truncate text-[14px]",
+                  isTonight ? "text-[#7C9E7A]" : "text-[#1C1917]",
+                )}
+              >
+                {m.name}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      <button
+        type="button"
+        onClick={onViewPlan}
+        className="mt-3 block w-full text-left text-[13px] text-[#78716C]"
+      >
+        View full plan →
+      </button>
     </div>
   );
 }
 
 type ApprovalToastPhase = "idle" | "fadeIn" | "visible" | "fadeOut";
 
-export function HomeDashboard() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const plan = useWeeklyPlanStore((s) => s.currentPlan);
-  const setCurrentPlan = useWeeklyPlanStore((s) => s.setCurrentPlan);
-  const hasPlan = Boolean(plan?.meals?.length);
-  const planStatus = plan && hasPlan ? effectivePlanStatus(plan) : null;
-
+function useApprovalToast(location: Location, navigate: NavigateFunction) {
   const [approvalToastPhase, setApprovalToastPhase] = useState<ApprovalToastPhase>("idle");
-
-  const [firstName, setFirstName] = useState("there");
-  const [avatarInitial, setAvatarInitial] = useState("?");
-  const [meluStapleNames, setMeluStapleNames] = useState<string[]>([]);
-  const [meluAspirationNames, setMeluAspirationNames] = useState<string[]>([]);
 
   useLayoutEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -301,6 +353,13 @@ export function HomeDashboard() {
     return () => globalThis.clearTimeout(t);
   }, [approvalToastPhase]);
 
+  return {
+    approvalToastPhase,
+    showApprovalToast: approvalToastPhase !== "idle",
+  };
+}
+
+function useWeeklyPlanFetch(setCurrentPlan: (p: Plan | null) => void) {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -316,7 +375,12 @@ export function HomeDashboard() {
       cancelled = true;
     };
   }, [setCurrentPlan]);
+}
 
+function useHomeSessionProfile(
+  setFirstName: (v: string) => void,
+  setAvatarInitial: (v: string) => void,
+) {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -337,45 +401,136 @@ export function HomeDashboard() {
         clearMealsPreviewCache();
         clearChefCardCache();
       }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [setFirstName, setAvatarInitial]);
+}
 
-      try {
-        const { data: mealRows, error: mealsErr } = await supabase
-          .from("user_meals")
-          .select("type, meals(name)")
-          .eq("user_id", user.id);
-        if (cancelled) return;
-        if (mealsErr) {
-          setMeluStapleNames([]);
-          setMeluAspirationNames([]);
-        } else {
-          const staples: string[] = [];
-          const aspirations: string[] = [];
-          for (const row of mealRows ?? []) {
-            const r = row as {
-              type?: string;
-              meals?: { name?: string } | { name?: string }[] | null;
-            };
-            const meals = r.meals;
-            const nameFromJoin = Array.isArray(meals) ? meals[0]?.name : meals?.name;
-            const label =
-              typeof nameFromJoin === "string" && nameFromJoin.trim() ? nameFromJoin : "Meal";
-            if (r.type === "staple") staples.push(label);
-            else if (r.type === "aspiration") aspirations.push(label);
-          }
-          setMeluStapleNames(staples);
-          setMeluAspirationNames(aspirations);
-        }
-      } catch {
-        if (!cancelled) {
-          setMeluStapleNames([]);
-          setMeluAspirationNames([]);
-        }
+function collectStapleAndAspirationLabels(rows: unknown[] | null | undefined): {
+  staples: string[];
+  aspirations: string[];
+} {
+  const staples: string[] = [];
+  const aspirations: string[] = [];
+  for (const row of rows ?? []) {
+    const r = row as {
+      type?: string;
+      meals?: { name?: string } | { name?: string }[] | null;
+    };
+    const mealsJoin = r.meals;
+    const nameFromJoin = Array.isArray(mealsJoin) ? mealsJoin[0]?.name : mealsJoin?.name;
+    const label =
+      typeof nameFromJoin === "string" && nameFromJoin.trim() ? nameFromJoin : "Meal";
+    if (r.type === "staple") staples.push(label);
+    else if (r.type === "aspiration") aspirations.push(label);
+  }
+  return { staples, aspirations };
+}
+
+function firstAspirationDisplayName(
+  aspirationLabels: string[],
+  answers: OnboardingAnswers | null,
+): string | null {
+  if (aspirationLabels[0]) return aspirationLabels[0];
+  const a = answers?.aspirations?.[0];
+  if (!a) return null;
+  return typeof a.name === "string" && a.name.trim() ? a.name.trim() : null;
+}
+
+function useMeluKnowsYouData() {
+  const [familyLine, setFamilyLine] = useState<string | null>(null);
+  const [stapleNames, setStapleNames] = useState<string[]>([]);
+  const [aspirationName, setAspirationName] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      if (!supabase) {
+        setFamilyLine(null);
+        setStapleNames([]);
+        setAspirationName(null);
+        return;
       }
+      const { data } = await supabase.auth.getSession();
+      const user = data.session?.user;
+      if (!user || cancelled) return;
+
+      const [profileRes, mealsRes] = await Promise.all([
+        supabase.from("profiles").select("onboarding_answers").eq("user_id", user.id).maybeSingle(),
+        supabase.from("user_meals").select("type, meals(name)").eq("user_id", user.id),
+      ]);
+      if (cancelled) return;
+
+      const raw = profileRes.data?.onboarding_answers;
+      const answers = raw === undefined || raw === null ? null : parseOnboardingAnswers(raw);
+      const { staples, aspirations } = collectStapleAndAspirationLabels(mealsRes.data);
+
+      setFamilyLine(buildFamilyWeeknightLine(answers));
+      setStapleNames(staples);
+      setAspirationName(firstAspirationDisplayName(aspirations, answers));
     })();
     return () => {
       cancelled = true;
     };
   }, []);
+
+  return { familyLine, stapleNames, aspirationName };
+}
+
+function PlannedWeekBody({ plan, onViewPlan }: Readonly<{ plan: Plan; onViewPlan: () => void }>) {
+  const meals = plan.meals;
+  const todayJs = new Date().getDay();
+  const tonightMeal = pickMealForAnchorDay(meals, todayJs);
+  const sortedMeals = sortMealsMonThroughSun(meals);
+
+  const tonightCard = tonightMeal ? <TonightHeroCard meal={tonightMeal} /> : null;
+
+  const planIsApproved = effectivePlanStatus(plan) === "approved";
+
+  const draftReviewCta = planIsApproved ? null : (
+    <div className="mt-6">
+      <button
+        type="button"
+        onClick={onViewPlan}
+        className="w-full rounded-full bg-primary text-primary-foreground h-14 text-[16px] font-semibold"
+      >
+        Review and approve
+      </button>
+    </div>
+  );
+
+  return (
+    <>
+      {tonightCard}
+      <ThisWeekMealList sortedMeals={sortedMeals} tonightMeal={tonightMeal} onViewPlan={onViewPlan} />
+      {draftReviewCta}
+      <p className="mt-5 mb-6 text-[13px] italic text-[#78716C]">
+        Keeping cook time under 30 min every night this week.
+      </p>
+    </>
+  );
+}
+
+export function HomeDashboard() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const plan = useWeeklyPlanStore((s) => s.currentPlan);
+  const setCurrentPlan = useWeeklyPlanStore((s) => s.setCurrentPlan);
+  const hasPlan = Boolean(plan?.meals?.length);
+  const planStatus = plan && hasPlan ? effectivePlanStatus(plan) : null;
+
+  const { approvalToastPhase, showApprovalToast } = useApprovalToast(location, navigate);
+
+  const [firstName, setFirstName] = useState("there");
+  const [avatarInitial, setAvatarInitial] = useState("?");
+
+  useWeeklyPlanFetch(setCurrentPlan);
+  useHomeSessionProfile(setFirstName, setAvatarInitial);
+  const { familyLine, stapleNames, aspirationName } = useMeluKnowsYouData();
+
+  const goToProfile = () => navigate("/profile");
 
   const avatarButton = (
     <button type="button" onClick={() => navigate("/profile")} aria-label="Profile">
@@ -396,17 +551,11 @@ export function HomeDashboard() {
     </div>
   );
 
-  const weekSectionLabel = (
-    <div className="text-[11px] text-muted-foreground tracking-[0.08em] font-semibold mb-2">
-      THIS WEEK
-    </div>
-  );
-
   const goToPlan = () => navigate("/plan");
 
   const stateAEmptyWeek = (
     <div>
-      {weekSectionLabel}
+      <div className={cn(SECTION_LABEL_CLASS, "mb-2")}>THIS WEEK</div>
       <div className="rounded-2xl bg-card p-[18px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-border/60">
         <p className="text-[15px] text-[#78716C] mb-4">No plan yet this week.</p>
         <button
@@ -421,46 +570,15 @@ export function HomeDashboard() {
     </div>
   );
 
-  let thisWeekCard: ReactNode;
-  if (!hasPlan || !plan) {
-    thisWeekCard = stateAEmptyWeek;
-  } else if (effectivePlanStatus(plan) === "approved") {
-    thisWeekCard = (
-      <div>
-        {weekSectionLabel}
-        <ThisWeekSummaryCard plan={plan} onNavigatePlan={goToPlan} />
-        <div className="mt-3">
-          <GroceryShortcutCard onNavigate={() => navigate("/grocery")} />
-        </div>
-      </div>
+  const mainColumn =
+    hasPlan && plan ? (
+      <PlannedWeekBody plan={plan} onViewPlan={goToPlan} />
+    ) : (
+      stateAEmptyWeek
     );
-  } else {
-    thisWeekCard = (
-      <div>
-        {weekSectionLabel}
-        <DraftWeekSummaryCard plan={plan} onReview={goToPlan} />
-      </div>
-    );
-  }
-
-  const nudge = hasPlan ? (
-    <p className="text-[13px] text-muted-foreground font-normal text-center md:text-left">
-      Next plan drops Sunday.
-    </p>
-  ) : null;
-
-  const meluBlock = (
-    <MeluKnowsYouBlock
-      stapleNames={meluStapleNames}
-      aspirationNames={meluAspirationNames}
-      onProfile={() => navigate("/profile")}
-    />
-  );
-
-  const showApprovalToast = approvalToastPhase !== "idle";
 
   return (
-    <ScreenShell className="pb-[76px] md:pb-0 md:max-w-none md:w-full">
+    <ScreenShell className="pb-[76px] md:pb-0 md:max-w-none md:w-full md:px-10">
       {showApprovalToast ? (
         <div
           role="status"
@@ -500,26 +618,21 @@ export function HomeDashboard() {
         {avatarButton}
       </nav>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 md:items-stretch md:gap-0">
-        <div className="order-1 md:order-none md:col-start-1 md:row-start-1 md:px-6 md:pt-6 md:border-r md:border-border">
-          {greeting}
-        </div>
-        <div className="order-2 md:order-none md:col-start-1 md:row-start-2 md:px-6 md:pb-4 md:border-r md:border-border">
-          {thisWeekCard}
-        </div>
-        <div
-          className={cn(
-            "order-3 mt-5 md:mt-0 md:order-none md:col-start-2 md:row-start-1 md:flex md:flex-col md:px-6 md:py-6",
-            hasPlan ? "md:row-span-3" : "md:row-span-2",
-          )}
-        >
-          {meluBlock}
-        </div>
-        {hasPlan ? (
-          <div className="order-4 mt-4 md:mt-0 md:order-none md:col-start-1 md:row-start-3 md:px-6 md:pb-6 md:border-r md:border-border">
-            {nudge}
+      <div className="w-full md:max-w-[1100px] md:mx-auto">
+        {greeting}
+
+        <div className="flex flex-col md:flex-row md:items-start md:gap-8">
+          <div className="w-full min-w-0 md:w-[60%]">{mainColumn}</div>
+
+          <div className="hidden min-w-0 md:block md:w-[40%]">
+            <MeluKnowsYouDesktopCard
+              familyLine={familyLine}
+              stapleNames={stapleNames}
+              aspirationName={aspirationName}
+              onNavigateProfile={goToProfile}
+            />
           </div>
-        ) : null}
+        </div>
       </div>
 
       <div className="md:hidden">

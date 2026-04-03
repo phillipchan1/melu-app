@@ -4,8 +4,8 @@ import { useLocation, useNavigate } from "react-router";
 import { generatePlan } from "../lib/api";
 import { useWeeklyPlanStore } from "../stores/weeklyPlanStore";
 import {
+  FULL_TO_ABBREV,
   filterNightsOnOrAfterToday,
-  formatNightsForPlanSentence,
   getWeekDates,
 } from "../utils/weekDates";
 
@@ -64,11 +64,6 @@ export function WeeklyCheckInContext() {
     return filterNightsOnOrAfterToday(selectedNights, weekDates);
   }, [selectedNights, weekDates]);
 
-  const nightsSummaryLine = useMemo(() => {
-    const sentence = formatNightsForPlanSentence(filteredNights, weekDates);
-    return sentence ? `Building your plan for ${sentence}.` : "";
-  }, [filteredNights, weekDates]);
-
   const runGenerate = useCallback(
     async (weeklyContext: string) => {
       if (!selectedNights?.length) return;
@@ -114,16 +109,37 @@ export function WeeklyCheckInContext() {
   }
 
   return (
-    <div className="flex min-h-[100dvh] w-full flex-col justify-center bg-[#FAF8F5] px-10">
-      <div className="mx-auto w-full max-w-[560px] py-12 text-left">
+    <div className="flex min-h-screen w-full flex-col justify-center bg-[#FAF8F5] py-12">
+      <div className="mx-auto w-full max-w-[560px] px-10 text-left md:px-0">
         {error ? (
           <p className="mb-4 text-left text-sm text-destructive" role="alert">
             {error}
           </p>
         ) : null}
 
-        {nightsSummaryLine ? (
-          <p className="mb-10 text-left text-[13px] text-[#78716C]">{nightsSummaryLine}</p>
+        {filteredNights.length > 0 ? (
+          <div>
+            <p className="mb-2 text-left text-[12px] font-medium text-[#78716C]">
+              Anything Melu should know for
+            </p>
+            <div className="mb-7 flex flex-wrap gap-2">
+              {filteredNights.map((full) => {
+                const abbrev = FULL_TO_ABBREV[full];
+                const entry = abbrev ? weekDates[abbrev] : null;
+                const dayAbbr = abbrev ?? "";
+                const dateLine = entry?.dateLabel ?? "";
+                return (
+                  <div
+                    key={full}
+                    className="min-w-[64px] cursor-default rounded-[10px] border-[1.5px] border-[#C8D9C7] bg-white px-[14px] py-2 text-center text-[11px] text-[#4A6741]"
+                  >
+                    <div className="font-bold tracking-[0.05em]">{dayAbbr}</div>
+                    <div className="font-normal">{dateLine}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         ) : null}
 
         <textarea
