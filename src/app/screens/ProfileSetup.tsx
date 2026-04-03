@@ -6,7 +6,6 @@ import { MealSelector, StaplesSearchOverlay } from "../components/StaplesSearchO
 import {
   type OnboardingAnswers,
   type Staple,
-  postChefCardGenerate,
   submitOnboarding,
 } from "../lib/api";
 import {
@@ -14,7 +13,6 @@ import {
   loadOnboardingDraft,
   saveOnboardingDraft,
 } from "../lib/onboardingDraft";
-import { useOnboardingChefCardStore } from "../stores/onboardingChefCardStore";
 
 /** Shown under "Step 1 of 3" only; steps 2–3 use no step-indicator subtitle. */
 const STEP_1_INDICATOR_SUBTITLE = "Basic info";
@@ -352,8 +350,6 @@ function pathToSectionIndex(pathname: string): number {
 export function ProfileSetup() {
   const navigate = useNavigate();
   const location = useLocation();
-  const setChefCardPromise = useOnboardingChefCardStore((s) => s.setChefCardPromise);
-  const setChefCardError = useOnboardingChefCardStore((s) => s.setChefCardError);
   const initial = useMemo(() => getInitialOnboardingState(), []);
   const [answers, setAnswers] = useState<OnboardingAnswers>(initial.answers);
   const sectionIndex = pathToSectionIndex(location.pathname);
@@ -390,7 +386,7 @@ export function ProfileSetup() {
   };
 
   const getNextButtonLabel = () => {
-    if (isSubmitting) return "Creating your card...";
+    if (isSubmitting) return "Saving...";
     if (isLastSection) return "Let's go";
     if (sectionIndex === 1) return "Continue";
     return "Next";
@@ -422,10 +418,7 @@ export function ProfileSetup() {
     try {
       await submitOnboarding(payload);
       clearOnboardingDraft();
-      setChefCardError(false);
-      const p = postChefCardGenerate();
-      setChefCardPromise(p);
-      navigate("/onboarding/loading");
+      navigate("/melu-snapshot");
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -629,7 +622,7 @@ export function ProfileSetup() {
               Your pace
             </p>
             <p className="text-[15px] text-foreground mb-1 font-medium">
-              How often should Melu pull from your wishlist?
+              How often should Melu pull from your aspirations?
             </p>
             <div className="mt-3 flex w-full justify-between gap-2">
               {PACE_OPTIONS.map((o) => {

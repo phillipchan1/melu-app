@@ -5,13 +5,9 @@ import { BottomNav } from "../components/BottomNav";
 import { ScreenShell, TopBar } from "../components/design-system";
 import { cn } from "../components/ui/utils";
 import type { Plan, PlanStatus } from "../lib/api";
-import { fetchCurrentWeekPlan, fetchMealsPreview } from "../lib/api";
+import { fetchCurrentWeekPlan } from "../lib/api";
 import { clearChefCardCache } from "../lib/chefCardCache";
-import {
-  clearMealsPreviewCache,
-  loadMealsPreviewCache,
-  saveMealsPreviewCache,
-} from "../lib/mealsPreviewCache";
+import { clearMealsPreviewCache, loadMealsPreviewCache } from "../lib/mealsPreviewCache";
 import { supabase } from "../lib/supabase";
 import { useWeeklyPlanStore } from "../stores/weeklyPlanStore";
 
@@ -56,33 +52,47 @@ function firstNameFromSessionUser(user: {
   return { firstName: first, initial };
 }
 
-function PillRow({
-  labels,
-  variant,
-}: {
-  labels: string[];
-  variant: "staple" | "aspiration";
-}) {
-  const shown = labels.slice(0, 3);
-  const rest = labels.length - 3;
-  const base =
-    "inline-block rounded-full text-[11px] m-0.5 px-2.5 py-0.5 max-w-full truncate";
-  const style =
-    variant === "staple"
-      ? "border border-primary text-primary"
-      : "border border-dashed border-muted-foreground text-muted-foreground";
+const MELU_SECTION_LABEL = "text-[10px] font-semibold tracking-[0.08em] text-[#78716C] mb-2";
 
+function StaplePillsRow({ labels }: { labels: string[] }) {
+  const shown = labels.slice(0, 3);
+  const rest = Math.max(0, labels.length - 3);
   return (
     <div>
-      <div className="flex flex-wrap">
-        {shown.map((label) => (
-          <span key={label} className={cn(base, style)}>
+      <div className="flex flex-wrap gap-1.5">
+        {shown.map((label, i) => (
+          <span
+            key={`${label}-${i}`}
+            className="inline-block max-w-full truncate rounded-full border border-solid border-[#7C9E7A] bg-white px-3 py-1 text-[12px] font-medium text-[#7C9E7A]"
+          >
             {label}
           </span>
         ))}
       </div>
       {rest > 0 ? (
-        <p className="text-[11px] text-muted-foreground mt-1">+ {rest} more</p>
+        <p className="mt-1 text-[12px] text-[#78716C]">+{rest} more</p>
+      ) : null}
+    </div>
+  );
+}
+
+function AspirationPillsRow({ labels }: { labels: string[] }) {
+  const shown = labels.slice(0, 3);
+  const rest = Math.max(0, labels.length - 3);
+  return (
+    <div>
+      <div className="flex flex-wrap gap-1.5">
+        {shown.map((label, i) => (
+          <span
+            key={`${label}-${i}`}
+            className="inline-block max-w-full truncate rounded-full border-[1.5px] border-dashed border-[#78716C] bg-white px-3 py-1 text-[12px] font-medium text-[#78716C]"
+          >
+            {label}
+          </span>
+        ))}
+      </div>
+      {rest > 0 ? (
+        <p className="mt-1 text-[12px] text-[#78716C]">+{rest} more</p>
       ) : null}
     </div>
   );
@@ -174,60 +184,75 @@ function MeluKnowsYouBlock({
   aspirationNames: string[];
   onProfile: () => void;
 }) {
-  const showStaples = stapleNames.length > 0;
-  const showAspiration = aspirationNames.length > 0;
-  if (!showStaples && !showAspiration) return null;
+  const hasStaples = stapleNames.length > 0;
+  const hasAspirations = aspirationNames.length > 0;
+  const showOuterCard = hasStaples || hasAspirations;
 
   return (
-    <div>
-      <div className="text-[11px] text-muted-foreground tracking-[0.08em] font-semibold mb-2 md:mb-2">
+    <div className="flex h-full min-h-0 flex-col md:flex-1 md:self-stretch">
+      <div className="text-[11px] font-semibold tracking-[0.08em] text-muted-foreground mb-2">
         MELU KNOWS YOU
       </div>
-      <div
-        className={cn(
-          "grid gap-3 md:grid-cols-1 md:gap-3",
-          showStaples && showAspiration ? "grid-cols-2" : "grid-cols-1",
-        )}
-      >
-        {showStaples ? (
-          <div className="rounded-xl bg-card p-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)] md:w-full">
-            <h3 className="text-[10px] font-semibold tracking-[0.07em] text-muted-foreground mb-2">
-              YOUR STAPLES
-            </h3>
-            <PillRow labels={stapleNames} variant="staple" />
-            <p className="text-[11px] text-muted-foreground mt-2">Anchors every plan.</p>
+
+      {showOuterCard ? (
+        <div
+          className={cn(
+            "flex flex-1 flex-col rounded-xl border border-border/60 bg-card p-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)]",
+            "min-h-0 md:min-h-full",
+          )}
+        >
+          <div className="flex min-h-0 flex-1 flex-col">
+            {hasStaples ? (
+              <div>
+                <h3 className={MELU_SECTION_LABEL}>YOUR STAPLES</h3>
+                <StaplePillsRow labels={stapleNames} />
+                <p className="mt-2 text-[12px] text-[#78716C]">Anchors every plan.</p>
+              </div>
+            ) : null}
+
+            {hasStaples ? <div className="my-3 h-px shrink-0 bg-[#F0EFED]" aria-hidden /> : null}
+
+            <div className={cn(hasStaples ? "" : "flex-1")}>
+              <h3 className={MELU_SECTION_LABEL}>YOUR ASPIRATIONS</h3>
+              {hasAspirations ? (
+                <>
+                  <AspirationPillsRow labels={aspirationNames} />
+                  <p className="mt-2 text-[12px] text-[#78716C]">Introduced at your pace.</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-[12px] text-[#78716C]">No aspirations yet.</p>
+                  <button
+                    type="button"
+                    onClick={onProfile}
+                    className="mt-2 text-left text-[13px] font-medium text-[#7C9E7A]"
+                  >
+                    + Add aspirations
+                  </button>
+                </>
+              )}
+            </div>
           </div>
-        ) : null}
-        {showAspiration ? (
-          <div className="rounded-xl bg-card p-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)] md:w-full">
-            <h3 className="text-[10px] font-semibold tracking-[0.07em] text-muted-foreground mb-2">
-              YOUR ASPIRATIONS
-            </h3>
-            <PillRow labels={aspirationNames} variant="aspiration" />
-            <p className="text-[11px] text-muted-foreground mt-2">
-              Introduced at your pace.
-            </p>
-          </div>
-        ) : null}
-      </div>
-      <button
-        type="button"
-        onClick={onProfile}
-        className="block w-full text-right text-[13px] text-primary font-normal mt-3"
-      >
-        See your full profile →
-      </button>
+
+          <button
+            type="button"
+            onClick={onProfile}
+            className="mt-4 block w-full text-right text-[13px] font-normal text-primary"
+          >
+            What Melu knows →
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={onProfile}
+          className="block w-full text-right text-[13px] font-normal text-primary md:mt-auto"
+        >
+          What Melu knows →
+        </button>
+      )}
     </div>
   );
-}
-
-function readInitialPreview(): { staples: string[]; aspirations: string[] } {
-  const cached = loadMealsPreviewCache();
-  if (!cached) return { staples: [], aspirations: [] };
-  return {
-    staples: cached.topStapleMeals,
-    aspirations: cached.topAspirations,
-  };
 }
 
 type ApprovalToastPhase = "idle" | "fadeIn" | "visible" | "fadeOut";
@@ -244,9 +269,8 @@ export function HomeDashboard() {
 
   const [firstName, setFirstName] = useState("there");
   const [avatarInitial, setAvatarInitial] = useState("?");
-  const [mealPreviewNames, setMealPreviewNames] = useState(() => readInitialPreview());
-  const stapleNames = mealPreviewNames.staples;
-  const aspirationNames = mealPreviewNames.aspirations;
+  const [meluStapleNames, setMeluStapleNames] = useState<string[]>([]);
+  const [meluAspirationNames, setMeluAspirationNames] = useState<string[]>([]);
 
   useLayoutEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -312,23 +336,39 @@ export function HomeDashboard() {
       if (cached && cached.userId !== user.id) {
         clearMealsPreviewCache();
         clearChefCardCache();
-        setMealPreviewNames({ staples: [], aspirations: [] });
       }
 
       try {
-        const preview = await fetchMealsPreview();
+        const { data: mealRows, error: mealsErr } = await supabase
+          .from("user_meals")
+          .select("type, meals(name)")
+          .eq("user_id", user.id);
         if (cancelled) return;
-        const staples = preview.topStapleMeals ?? [];
-        const aspirations = preview.topAspirations ?? [];
-        setMealPreviewNames({ staples, aspirations });
-        saveMealsPreviewCache({
-          userId: user.id,
-          topStapleMeals: staples,
-          topAspirations: aspirations,
-        });
+        if (mealsErr) {
+          setMeluStapleNames([]);
+          setMeluAspirationNames([]);
+        } else {
+          const staples: string[] = [];
+          const aspirations: string[] = [];
+          for (const row of mealRows ?? []) {
+            const r = row as {
+              type?: string;
+              meals?: { name?: string } | { name?: string }[] | null;
+            };
+            const meals = r.meals;
+            const nameFromJoin = Array.isArray(meals) ? meals[0]?.name : meals?.name;
+            const label =
+              typeof nameFromJoin === "string" && nameFromJoin.trim() ? nameFromJoin : "Meal";
+            if (r.type === "staple") staples.push(label);
+            else if (r.type === "aspiration") aspirations.push(label);
+          }
+          setMeluStapleNames(staples);
+          setMeluAspirationNames(aspirations);
+        }
       } catch {
         if (!cancelled) {
-          setMealPreviewNames({ staples: [], aspirations: [] });
+          setMeluStapleNames([]);
+          setMeluAspirationNames([]);
         }
       }
     })();
@@ -336,8 +376,6 @@ export function HomeDashboard() {
       cancelled = true;
     };
   }, []);
-
-  const showMeluKnowsYou = stapleNames.length > 0 || aspirationNames.length > 0;
 
   const avatarButton = (
     <button type="button" onClick={() => navigate("/profile")} aria-label="Profile">
@@ -411,14 +449,13 @@ export function HomeDashboard() {
     </p>
   ) : null;
 
-  const meluBlock =
-    showMeluKnowsYou ? (
-      <MeluKnowsYouBlock
-        stapleNames={stapleNames}
-        aspirationNames={aspirationNames}
-        onProfile={() => navigate("/profile")}
-      />
-    ) : null;
+  const meluBlock = (
+    <MeluKnowsYouBlock
+      stapleNames={meluStapleNames}
+      aspirationNames={meluAspirationNames}
+      onProfile={() => navigate("/profile")}
+    />
+  );
 
   const showApprovalToast = approvalToastPhase !== "idle";
 
@@ -463,28 +500,21 @@ export function HomeDashboard() {
         {avatarButton}
       </nav>
 
-      <div
-        className={cn(
-          "grid grid-cols-1 md:gap-0",
-          showMeluKnowsYou ? "md:grid-cols-2" : "md:grid-cols-1",
-        )}
-      >
+      <div className="grid grid-cols-1 md:grid-cols-2 md:items-stretch md:gap-0">
         <div className="order-1 md:order-none md:col-start-1 md:row-start-1 md:px-6 md:pt-6 md:border-r md:border-border">
           {greeting}
         </div>
         <div className="order-2 md:order-none md:col-start-1 md:row-start-2 md:px-6 md:pb-4 md:border-r md:border-border">
           {thisWeekCard}
         </div>
-        {showMeluKnowsYou ? (
-          <div
-            className={cn(
-              "order-3 mt-5 md:mt-0 md:order-none md:col-start-2 md:row-start-1 md:px-6 md:py-6",
-              hasPlan ? "md:row-span-3" : "md:row-span-2",
-            )}
-          >
-            {meluBlock}
-          </div>
-        ) : null}
+        <div
+          className={cn(
+            "order-3 mt-5 md:mt-0 md:order-none md:col-start-2 md:row-start-1 md:flex md:flex-col md:px-6 md:py-6",
+            hasPlan ? "md:row-span-3" : "md:row-span-2",
+          )}
+        >
+          {meluBlock}
+        </div>
         {hasPlan ? (
           <div className="order-4 mt-4 md:mt-0 md:order-none md:col-start-1 md:row-start-3 md:px-6 md:pb-6 md:border-r md:border-border">
             {nudge}

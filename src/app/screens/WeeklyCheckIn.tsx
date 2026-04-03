@@ -47,83 +47,63 @@ export function WeeklyCheckIn() {
     navigate("/weekly-checkin/context", { state: { selectedNights } });
   };
 
-  const nextButton = (
-    <Button
-      variant="melu"
-      className="w-full h-14 text-[17px] font-semibold rounded-full"
-      disabled={count === 0}
-      onClick={handleNext}
-    >
-      Next
-    </Button>
-  );
-
   return (
-    <ScreenShell className="flex flex-col min-h-[100dvh] w-full max-w-[640px] md:max-w-[960px] mx-auto px-10 md:px-12 pb-28 md:pb-8">
-      <div className="flex flex-1 flex-col gap-0 md:flex-row md:gap-12 md:items-start">
-        <div className="flex min-w-0 flex-1 flex-col md:w-1/2">
-          <div className="pt-10 pb-6">
-            <h1 className="text-[20px] font-semibold text-foreground leading-tight">
-              Which nights do you need dinner?
-            </h1>
-            <p className="text-[14px] text-muted-foreground mt-2 font-normal">
-              Melu will build a plan for these nights.
-            </p>
-          </div>
+    <ScreenShell className="mx-auto flex min-h-[100dvh] w-full max-w-[580px] flex-col px-10 pb-28 pt-12 text-left">
+      <h1 className="text-[24px] font-bold leading-tight text-[#1C1917]">
+        Which nights do you need dinner?
+      </h1>
+      <p className="mb-6 mt-0 text-[14px] font-normal text-[#78716C]">
+        Melu will build a plan for these nights.
+      </p>
 
-          <div className="flex flex-wrap gap-3">
-            {TOGGLE_ORDER.map(({ abbrev, full }) => {
-              const on = selected.has(full);
-              const past = isFullDayInPast(full, weekDates);
-              const disabled = past;
-              const entry = weekDates[abbrev];
-              return (
-                <button
-                  key={full}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => toggle(full, disabled)}
-                  className={cn(
-                    "flex min-w-[72px] flex-col items-center justify-center gap-0.5 rounded-full px-4 py-3 text-[13px] font-semibold transition-colors",
-                    disabled &&
-                      "cursor-not-allowed border-[1.5px] border-[#E8E5E1] bg-[#F5F3F0] text-[#1C1917]/40",
-                    !disabled &&
-                      on &&
-                      "border-[1.5px] border-transparent bg-[#7C9E7A] text-white [&_span:last-child]:text-white",
-                    !disabled &&
-                      !on &&
-                      "border-[1.5px] border-[#D6D3CF] bg-white text-[#1C1917]",
-                  )}
-                >
-                  <span className={cn(!disabled && !on && "text-[#1C1917]")}>{abbrev}</span>
-                  <span
-                    className={cn(
-                      "text-[11px] font-normal leading-tight",
-                      !disabled && on && "text-white",
-                      !disabled && !on && "text-[#78716C]",
-                      disabled && "text-[#1C1917]/40",
-                    )}
-                  >
-                    {entry.dateLabel}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="mt-10 hidden md:block">{nextButton}</div>
-        </div>
-
-        <div className="hidden min-w-0 flex-1 md:flex md:w-1/2 md:flex-col md:pt-10">
-          <div className="rounded-2xl bg-white p-4 text-[14px] text-[#78716C] shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
-            Your plan will be built for these nights.
-          </div>
-        </div>
+      <div className="flex flex-wrap gap-[10px]">
+        {TOGGLE_ORDER.map(({ abbrev, full }) => {
+          const on = selected.has(full);
+          const past = isFullDayInPast(full, weekDates);
+          const disabled = past;
+          const entry = weekDates[abbrev];
+          return (
+            <button
+              key={full}
+              type="button"
+              disabled={disabled}
+              onClick={() => toggle(full, disabled)}
+              className={cn(
+                "flex min-w-[72px] flex-col items-center justify-center gap-0.5 rounded-full px-4 py-3 text-[13px] font-semibold transition-colors",
+                disabled &&
+                  "cursor-not-allowed border-[1.5px] border-[#E8E5E1] bg-[#F5F3F0] text-[#1C1917]/40",
+                !disabled &&
+                  on &&
+                  "border-[1.5px] border-transparent bg-[#7C9E7A] text-white [&_span:last-child]:text-white",
+                !disabled &&
+                  !on &&
+                  "border-[1.5px] border-[#D6D3CF] bg-white text-[#1C1917]",
+              )}
+            >
+              <span className={cn(!disabled && !on && "text-[#1C1917]")}>{abbrev}</span>
+              <span
+                className={cn(
+                  "text-[11px] font-normal leading-tight",
+                  !disabled && on && "text-white",
+                  !disabled && !on && "text-[#78716C]",
+                  disabled && "text-[#1C1917]/40",
+                )}
+              >
+                {entry.dateLabel}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-10 border-t border-border bg-background px-10 py-4 md:hidden">
-        <div className="mx-auto w-full max-w-[640px]">{nextButton}</div>
-      </div>
+      <Button
+        variant="melu"
+        className="mt-8 h-14 w-full rounded-full text-[17px] font-semibold"
+        disabled={count === 0}
+        onClick={handleNext}
+      >
+        Next
+      </Button>
     </ScreenShell>
   );
 }

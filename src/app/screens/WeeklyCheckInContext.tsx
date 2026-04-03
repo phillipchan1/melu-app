@@ -1,44 +1,39 @@
-import { Send } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 
-import { ChatBubble, ScreenShell } from "../components/design-system";
 import { generatePlan } from "../lib/api";
-import { supabase } from "../lib/supabase";
 import { useWeeklyPlanStore } from "../stores/weeklyPlanStore";
 import {
-  FULL_TO_ABBREV,
   filterNightsOnOrAfterToday,
+  formatNightsForPlanSentence,
   getWeekDates,
 } from "../utils/weekDates";
-
-function firstNameFromSessionUser(user: {
-  user_metadata?: Record<string, unknown>;
-  email?: string;
-}): string {
-  const full = user.user_metadata?.full_name;
-  const emailLocal = user.email?.split("@")[0] ?? "";
-  const raw =
-    typeof full === "string" && full.trim().length > 0 ? full.trim() : emailLocal || "there";
-  const first = raw.split(/\s+/)[0] ?? raw;
-  return first;
-}
 
 export type WeeklyCheckInLocationState = {
   selectedNights?: string[];
 };
 
-const skipPillClass =
-  "rounded-full border-[1.5px] border-[#D6D3CF] bg-transparent px-4 py-2 text-[14px] font-medium text-[#78716C]";
-
-function LoadingPlan() {
+function LoadingPlan({ showContextLine }: { readonly showContextLine: boolean }) {
+  const [dotCount, setDotCount] = useState(1);
+  useEffect(() => {
+    const t = globalThis.setInterval(() => {
+      setDotCount((c) => (c >= 3 ? 1 : c + 1));
+    }, 600);
+    return () => globalThis.clearInterval(t);
+  }, []);
   return (
-    <div className="flex flex-col items-center justify-center min-h-[100dvh] px-page">
-      <div className="text-[22px] text-primary font-semibold mb-3">melu</div>
-      <p className="text-[15px] text-muted-foreground font-normal">
-        Building your plan
-        <span className="inline-block w-[1.2em] text-left animate-pulse">...</span>
-      </p>
+    <div className="flex min-h-[100dvh] w-full flex-col items-center justify-center bg-[#FAF8F5] px-10">
+      <div className="mx-auto flex w-full max-w-[560px] flex-col items-center">
+        <div className="text-[22px] font-semibold text-[#7C9E7A]">melu</div>
+        <p className="mt-4 text-center text-[15px] font-normal text-[#78716C]">
+          Building your plan{".".repeat(dotCount)}
+        </p>
+        {showContextLine ? (
+          <p className="mt-2 text-center text-[13px] italic text-[#78716C]">
+            Taking into account what you shared.
+          </p>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -49,33 +44,30 @@ export function WeeklyCheckInContext() {
   const state = location.state as WeeklyCheckInLocationState | null;
   const selectedNights = state?.selectedNights;
   const setLastPlanRequest = useWeeklyPlanStore((s) => s.setLastPlanRequest);
+  const setCurrentPlan = useWeeklyPlanStore((s) => s.setCurrentPlan);
 
   const weekDates = useMemo(() => getWeekDates(), []);
 
-  const summaryPills = useMemo(() => {
-    if (!selectedNights?.length) return [];
-    const filtered = filterNightsOnOrAfterToday(selectedNights, weekDates);
-    return filtered.map((full) => {
-      const abbrev = FULL_TO_ABBREV[full];
-      const entry = abbrev ? weekDates[abbrev] : null;
-      return {
-        full,
-        line: entry ? `${abbrev} ${entry.dateLabel}` : full,
-      };
-    });
-  }, [selectedNights, weekDates]);
-
-  const [firstName, setFirstName] = useState("there");
-  const [input, setInput] = useState("");
-  const [userMessage, setUserMessage] = useState<string | null>(null);
+  const [textareaValue, setTextareaValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const submittedContextForLoadingRef = useRef("");
 
   useEffect(() => {
     if (!selectedNights?.length) {
       navigate("/weekly-checkin", { replace: true });
     }
   }, [selectedNights, navigate]);
+
+  const filteredNights = useMemo(() => {
+    if (!selectedNights?.length) return [];
+    return filterNightsOnOrAfterToday(selectedNights, weekDates);
+  }, [selectedNights, weekDates]);
+
+  const nightsSummaryLine = useMemo(() => {
+    const sentence = formatNightsForPlanSentence(filteredNights, weekDates);
+    return sentence ? `Building your plan for ${sentence}.` : "";
+  }, [filteredNights, weekDates]);
 
   const runGenerate = useCallback(
     async (weeklyContext: string) => {
@@ -85,12 +77,14 @@ export function WeeklyCheckInContext() {
         setError("No upcoming nights selected. Go back and pick at least one future night.");
         return;
       }
+      submittedContextForLoadingRef.current = weeklyContext;
       setError(null);
       setLoading(true);
       const todayDate = new Date().toISOString();
       const payload = { selectedNights: filtered, weeklyContext, todayDate };
       try {
         const plan = await generatePlan(payload);
+        setCurrentPlan(plan);
         setLastPlanRequest({
           selectedNights: filtered,
           weeklyContext,
@@ -102,33 +96,11 @@ export function WeeklyCheckInContext() {
         setError(e instanceof Error ? e.message : "Could not build plan");
       }
     },
-    [selectedNights, navigate, setLastPlanRequest],
+    [selectedNights, navigate, setLastPlanRequest, setCurrentPlan],
   );
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (!supabase) return;
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!cancelled && user) {
-        setFirstName(firstNameFromSessionUser(user));
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const handleSkip = () => {
-    void runGenerate("");
-  };
-
-  const handleSend = () => {
-    const trimmed = input.trim();
-    if (!trimmed) return;
-    setUserMessage(trimmed);
-    setInput("");
-    void runGenerate(trimmed);
+  const handleBuild = () => {
+    void runGenerate(textareaValue.trim());
   };
 
   if (!selectedNights?.length) {
@@ -136,112 +108,44 @@ export function WeeklyCheckInContext() {
   }
 
   if (loading) {
-    return <LoadingPlan />;
+    return (
+      <LoadingPlan showContextLine={submittedContextForLoadingRef.current.length > 0} />
+    );
   }
 
-  const opening = `Hey ${firstName} — anything I should know before I build your dinners this week?`;
+  return (
+    <div className="flex min-h-[100dvh] w-full flex-col justify-center bg-[#FAF8F5] px-10">
+      <div className="mx-auto w-full max-w-[560px] py-12 text-left">
+        {error ? (
+          <p className="mb-4 text-left text-sm text-destructive" role="alert">
+            {error}
+          </p>
+        ) : null}
 
-  const inputBar = (
-    <div className="bg-background px-0 py-3 md:border-t md:border-border md:pt-3 md:pb-4">
-      <div className="flex items-center gap-2">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleSend();
-          }}
-          placeholder="Type a message..."
-          className="min-h-11 flex-1 rounded-full border border-border bg-secondary px-4 py-3 text-[15px] font-normal text-foreground outline-none placeholder:text-muted-foreground"
+        {nightsSummaryLine ? (
+          <p className="mb-10 text-left text-[13px] text-[#78716C]">{nightsSummaryLine}</p>
+        ) : null}
+
+        <textarea
+          value={textareaValue}
+          onChange={(e) => setTextareaValue(e.target.value)}
+          placeholder="e.g. 'Having guests Thursday' · 'Low on groceries' · 'Busy week, keep it simple'"
+          className="w-full min-h-[120px] resize-none rounded-2xl border-[1.5px] border-[#E8E5E1] bg-white px-5 py-5 text-[16px] leading-[1.6] text-[#1C1917] shadow-[0_1px_4px_rgba(0,0,0,0.06)] outline-none placeholder:italic placeholder:text-[#B5B2AE] focus:border-[#7C9E7A] focus:shadow-[0_0_0_3px_rgba(124,158,122,0.15)] md:min-h-[160px]"
+          style={{ fontFamily: "inherit" }}
         />
+
+        <p className="mt-3 text-left text-[12px] text-[#78716C]">
+          Melu handles the rest — just share what&apos;s different this week.
+        </p>
+
         <button
           type="button"
-          onClick={handleSend}
-          className="flex h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-primary"
+          onClick={handleBuild}
+          className="mt-8 h-14 w-full cursor-pointer rounded-full border-none bg-[#7C9E7A] text-[17px] font-semibold text-white hover:bg-[#6B8F69] active:bg-[#5F7F5E]"
         >
-          <Send className="h-5 w-5 text-primary-foreground" />
+          Build my plan
         </button>
       </div>
     </div>
-  );
-
-  return (
-    <ScreenShell className="relative flex min-h-[100dvh] w-full max-w-[640px] flex-col px-10 pb-28 md:mx-auto md:max-w-[960px] md:px-12 md:pb-8">
-      {/* Placement A: fixed skip — mobile + desktop */}
-      <button
-        type="button"
-        onClick={handleSkip}
-        className={`fixed right-5 top-4 z-20 ${skipPillClass}`}
-      >
-        Skip — nothing to add
-      </button>
-
-      <div className="flex w-full flex-1 flex-col gap-0 md:flex-row md:gap-12 md:items-stretch">
-        {/* Left column: summary + chat + input (desktop: input at bottom of column) */}
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col md:w-1/2 md:max-h-[100dvh]">
-          <div className="shrink-0 pt-14 md:pt-4">
-            <div className="mb-3 rounded-xl bg-card p-4 shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
-              <div className="mb-2 text-[10px] font-semibold tracking-[0.08em] text-[#78716C]">
-                THIS WEEK
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {summaryPills.map(({ full, line }) => (
-                  <span
-                    key={full}
-                    className="inline-flex rounded-lg border border-[#7C9E7A] px-2.5 py-1 text-[12px] font-medium text-[#7C9E7A]"
-                  >
-                    {line}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex min-h-0 flex-1 flex-col md:min-h-0">
-            <div className="flex min-h-0 flex-1 flex-col space-y-3 overflow-y-auto pb-24 md:pb-4">
-              {error && (
-                <p className="text-sm text-destructive px-1" role="alert">
-                  {error}
-                </p>
-              )}
-              <ChatBubble variant="ai">
-                <p className="text-[15px] font-normal text-foreground">{opening}</p>
-              </ChatBubble>
-              {userMessage && (
-                <ChatBubble variant="user">
-                  <p className="text-[15px] font-normal text-primary-foreground">{userMessage}</p>
-                </ChatBubble>
-              )}
-            </div>
-
-            {/* Mobile: fixed input full viewport width; desktop: static at bottom of left column */}
-            <div className="fixed bottom-0 left-0 right-0 z-10 border-t border-border bg-background px-10 py-3 md:static md:z-0 md:mt-auto md:border-t-0 md:px-0 md:py-0">
-              <div className="mx-auto w-full max-w-[640px] md:mx-0 md:max-w-none">{inputBar}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right column: helper card — desktop only */}
-        <div className="hidden min-w-0 flex-1 flex-col md:flex md:w-1/2 md:pt-4">
-          <div className="rounded-2xl bg-white p-4 shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
-            <h2 className="text-[15px] font-semibold leading-snug text-[#1C1917]">
-              Nothing to add?
-            </h2>
-            <p className="mt-1 text-[14px] leading-[1.5] text-[#78716C]">
-              That&apos;s fine. Melu will build your plan based on what it already knows about your
-              family.
-            </p>
-            {/* Placement B: second Skip — desktop only */}
-            <button
-              type="button"
-              onClick={handleSkip}
-              className={`mt-4 w-full ${skipPillClass}`}
-            >
-              Skip — nothing to add
-            </button>
-          </div>
-        </div>
-      </div>
-    </ScreenShell>
   );
 }

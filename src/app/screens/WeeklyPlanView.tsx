@@ -32,6 +32,24 @@ function dayAbbrev(day: string): string {
   return DAY_TO_ABBREV[key] ?? day.slice(0, 3).toUpperCase();
 }
 
+function BuildingPlanLoadingDots() {
+  const [dotCount, setDotCount] = useState(1);
+  useEffect(() => {
+    const t = globalThis.setInterval(() => {
+      setDotCount((c) => (c >= 3 ? 1 : c + 1));
+    }, 600);
+    return () => globalThis.clearInterval(t);
+  }, []);
+  return (
+    <div className="fixed inset-0 z-20 flex flex-col items-center justify-center bg-[#FAF8F5] px-page">
+      <div className="mb-3 text-[22px] font-semibold text-[#7C9E7A]">melu</div>
+      <p className="text-[15px] font-normal text-[#78716C]">
+        Building your plan{".".repeat(dotCount)}
+      </p>
+    </div>
+  );
+}
+
 function mealToCardProps(meal: Meal, weekStart?: string) {
   let date: number | undefined;
   if (weekStart) {
@@ -68,15 +86,21 @@ export function WeeklyPlanView() {
   const [regenerating, setRegenerating] = useState(false);
   const [regenerateError, setRegenerateError] = useState<string | null>(null);
 
+  // Sync from navigation state only — do not depend on `storedPlan` here: calling
+  // setCurrentPlan updates the store and would retrigger this effect forever.
   useEffect(() => {
-    if (planFromNav?.meals?.length) {
-      const p = normalizePlan(planFromNav);
-      setPlan(p);
-      setCurrentPlan(p);
-    } else if (storedPlan?.meals?.length && !planFromNav) {
-      setPlan(normalizePlan(storedPlan));
-    }
-  }, [planFromNav, storedPlan, setCurrentPlan]);
+    if (!planFromNav?.meals?.length) return;
+    const p = normalizePlan(planFromNav);
+    setPlan(p);
+    setCurrentPlan(p);
+  }, [planFromNav, setCurrentPlan]);
+
+  // Hydrate from zustand when there is no plan in location state (e.g. refresh).
+  useEffect(() => {
+    if (planFromNav?.meals?.length) return;
+    if (!storedPlan?.meals?.length) return;
+    setPlan(normalizePlan(storedPlan));
+  }, [planFromNav, storedPlan]);
 
   const effectivePlan = planFromNav ?? storedPlan;
   const shouldRedirectToHome = !effectivePlan?.meals?.length;
@@ -140,28 +164,34 @@ export function WeeklyPlanView() {
   };
 
   return (
-    <ScreenShell className="pb-32 max-w-[375px] lg:max-w-7xl relative">
-      {regenerating && (
-        <div className="fixed inset-0 z-20 flex flex-col items-center justify-center bg-white/85 px-page">
-          <div className="text-[22px] text-primary font-semibold mb-3">melu</div>
-          <p className="text-[14px] text-[#78716C]">
-            Generating a new plan
-            <span className="inline-block w-[1.2em] text-left animate-pulse">...</span>
-          </p>
-        </div>
-      )}
+    <ScreenShell className="relative pb-32 text-left max-w-[375px] lg:max-w-7xl">
+      {regenerating && <BuildingPlanLoadingDots />}
 
       <div className="pt-12 pb-6">
-        <h1 className="text-[24px] text-foreground mb-2 font-semibold">
-          Your week, sorted.
+        <h1 className="mb-2 text-[24px] font-semibold text-foreground">
+          Here&apos;s your week.
         </h1>
-        <p className="text-[15px] text-muted-foreground font-normal">
+        <p className="mb-0 text-[14px] font-normal text-[#78716C]">
           {n} {n === 1 ? "dinner" : "dinners"}, ready to go.
         </p>
+        {planForUi.planSummary != null && planForUi.planSummary.trim() !== "" ? (
+          <p
+            style={{
+              fontSize: "15px",
+              color: "#78716C",
+              fontStyle: "italic",
+              lineHeight: "1.5",
+              marginBottom: "20px",
+              textAlign: "left",
+            }}
+          >
+            {planForUi.planSummary.trim()}
+          </p>
+        ) : null}
       </div>
 
       {approveError && (
-        <p className="text-sm text-destructive mb-4 px-1" role="alert">
+        <p className="mb-4 px-1 text-left text-sm text-destructive" role="alert">
           {approveError}
         </p>
       )}
@@ -176,17 +206,17 @@ export function WeeklyPlanView() {
       </div>
 
       {lastPlanRequest ? (
-        <div className="mt-4 flex flex-col items-center">
+        <div className="mt-4 flex flex-col items-stretch text-left">
           <button
             type="button"
             onClick={() => void handleTryDifferent()}
             disabled={regenerating}
-            className="text-[14px] text-[#78716C] text-center hover:underline mt-4 mb-6 disabled:opacity-50"
+            className="mb-6 mt-4 text-left text-[14px] text-[#78716C] hover:underline disabled:opacity-50"
           >
             Try a different plan
           </button>
           {regenerateError && (
-            <p className="text-[13px] text-[#B91C1C] mb-2" role="alert">
+            <p className="mb-2 text-left text-[13px] text-[#B91C1C]" role="alert">
               {regenerateError}
             </p>
           )}

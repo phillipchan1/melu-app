@@ -100,3 +100,25 @@ export function filterNightsOnOrAfterToday(
     return startOfDay(weekDates[abbrev].date) >= todayStart;
   });
 }
+
+/**
+ * Human-readable list for "Building your plan for …" (Oxford comma for 3+).
+ * `fullDayNames` should already be sorted Monday-first (e.g. from filterNightsOnOrAfterToday).
+ */
+export function formatNightsForPlanSentence(
+  fullDayNames: string[],
+  weekDates: ReturnType<typeof getWeekDates>,
+): string {
+  const segments = fullDayNames.map((full) => {
+    const abbrev = FULL_TO_ABBREV[full];
+    const entry = abbrev ? weekDates[abbrev] : null;
+    const datePart = entry?.dateLabel ?? "";
+    return `${full} ${datePart}`.trim();
+  });
+
+  if (segments.length === 0) return "";
+  if (segments.length === 1) return segments[0];
+  if (segments.length === 2) return `${segments[0]} and ${segments[1]}`;
+  const last = segments.at(-1) ?? "";
+  return `${segments.slice(0, -1).join(", ")}, and ${last}`;
+}

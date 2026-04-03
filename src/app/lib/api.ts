@@ -85,7 +85,7 @@ export interface OnboardingAnswers {
   q6: string;
   /** Q7 — dinner staples (canonical) */
   staples: Staple[];
-  /** Wishlist meals from library (onboarding step 3) */
+  /** Aspiration meals from library (onboarding step 3) */
   aspirations: Staple[];
   /** 1–5 — how often Melu introduces aspirations vs staples (default 2 = Mostly familiar) */
   discoveryPace: number;
@@ -155,10 +155,16 @@ export interface Meal {
   sourceType?: 'staple' | 'aspiration';
 }
 
+export type PlanStatus = 'pending' | 'approved';
+
 export interface Plan {
   id: string;
   weekStart: string;
   meals: Meal[];
+  /** Omitted in older responses; treat as pending when missing. */
+  status?: PlanStatus;
+  /** One-line summary from plan generation; may be absent on plans loaded from DB. */
+  planSummary?: string;
 }
 
 export interface GeneratePlanResponse {
@@ -175,12 +181,11 @@ export interface GeneratePlanOptions {
 
 export async function generatePlan(options: GeneratePlanOptions = {}): Promise<Plan> {
   const headers = await getAuthHeaders();
-  const body: Record<string, unknown> = {};
+  const body: Record<string, unknown> = {
+    weeklyContext: options.weeklyContext?.trim() ?? '',
+  };
   if (options.selectedNights != null && options.selectedNights.length > 0) {
     body.selectedNights = options.selectedNights;
-  }
-  if (options.weeklyContext != null && options.weeklyContext.length > 0) {
-    body.weeklyContext = options.weeklyContext;
   }
   if (options.todayDate != null && options.todayDate.length > 0) {
     body.todayDate = options.todayDate;
@@ -198,7 +203,37 @@ export async function generatePlan(options: GeneratePlanOptions = {}): Promise<P
   }
 
   const data: GeneratePlanResponse = await response.json();
-  return data.plan;
+  return normalizePlan(data.plan);
+}
+
+/** Server is authoritative for pending vs approved; fills default status when missing. */
+export function normalizePlan(plan: Plan): Plan {
+  return {
+    ...plan,
+    status: plan.status ?? 'pending',
+  };
+}
+
+export async function fetchCurrentWeekPlan(): Promise<Plan | null> {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${BASE_URL}/api/plan/current`, {
+    method: 'GET',
+    headers,
+  });
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    const errBody = await response.json().catch(() => ({}));
+    throw new Error(
+      typeof errBody.error === 'string' ? errBody.error : `API error: ${response.status}`,
+    );
+  }
+
+  const body: { plan: Plan } = await response.json();
+  return normalizePlan(body.plan);
 }
 
 export async function approvePlan(planId: string): Promise<void> {

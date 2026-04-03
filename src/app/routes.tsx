@@ -1,15 +1,13 @@
 import { createBrowserRouter, Navigate, Outlet } from "react-router";
 import { SplashScreen } from "./screens/SplashScreen";
 import { ProfileSetup } from "./screens/ProfileSetup";
-import { ChefCardLoading } from "./screens/ChefCardLoading";
-import { OnboardingChefCard } from "./screens/OnboardingChefCard";
 import { WeeklyCheckIn } from "./screens/WeeklyCheckIn";
 import { WeeklyCheckInContext } from "./screens/WeeklyCheckInContext";
 import { HomeDashboard } from "./screens/HomeDashboard";
 import { ComingUp } from "./screens/ComingUp";
 import { WeeklyPlanView } from "./screens/WeeklyPlanView";
 import { GroceryComingSoon } from "./screens/GroceryComingSoon";
-import { ProfilePreferences } from "./screens/ProfilePreferences";
+import { MeluSnapshot } from "./screens/MeluSnapshot";
 import { StaplesScreen } from "./screens/StaplesScreen";
 import { AuthGate } from "./components/AuthGate";
 
@@ -22,14 +20,6 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, Component: SplashScreen },
-      {
-        path: "onboarding/loading",
-        Component: ChefCardLoading,
-      },
-      {
-        path: "onboarding/chef-card",
-        Component: OnboardingChefCard,
-      },
       {
         path: "onboarding/goals",
         element: <Navigate to="/onboarding/aspirations" replace />,
@@ -68,8 +58,12 @@ export const router = createBrowserRouter([
         Component: GroceryComingSoon,
       },
       {
+        path: "melu-snapshot",
+        element: <MeluSnapshot mode="onboarding" />,
+      },
+      {
         path: "profile",
-        Component: ProfilePreferences,
+        element: <MeluSnapshot mode="profile" />,
       },
       {
         path: "staples",

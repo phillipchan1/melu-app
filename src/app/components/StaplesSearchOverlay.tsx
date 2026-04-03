@@ -204,8 +204,8 @@ export function StaplesSearchOverlay({
     mode === "aspirations"
       ? "These are meals Melu will introduce over time — one new dish at a time, when you're ready."
       : "Meals your family already loves. These anchor every plan.";
-  const panelTitle = mode === "aspirations" ? "Your Wishlist" : "Your Staples";
-  const doneLabel = mode === "aspirations" ? "Save Wishlist" : "Save Staples";
+  const panelTitle = mode === "aspirations" ? "Your aspirations" : "Your Staples";
+  const doneLabel = mode === "aspirations" ? "Save aspirations" : "Save Staples";
 
   const emitEmbeddedIfNeeded = (next: Staple[]) => {
     if (embedded && onSelectionChange) {
@@ -320,7 +320,7 @@ export function StaplesSearchOverlay({
               <h3 className="text-[17px] font-semibold text-foreground">{activeNodeMeta.label}</h3>
               <p className="text-[13px] text-muted-foreground mt-0.5 leading-relaxed">
                 {mode === "aspirations"
-                  ? `${activeNodeMeta.label} dishes you want to learn — add them to your wishlist.`
+                  ? `${activeNodeMeta.label} dishes you want to learn — add them to your aspirations.`
                   : `Your go-to ${activeNodeMeta.label} dinners.`}
               </p>
             </div>
