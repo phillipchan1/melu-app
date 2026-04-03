@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import type { Meal, Plan } from "../lib/api";
-import { approvePlan, generatePlan } from "../lib/api";
+import { approvePlan, generatePlan, normalizePlan } from "../lib/api";
 
 import { useWeeklyPlanStore } from "../stores/weeklyPlanStore";
 import { Button } from "../components/ui/button";
@@ -70,40 +70,43 @@ export function WeeklyPlanView() {
 
   useEffect(() => {
     if (planFromNav?.meals?.length) {
-      setPlan(planFromNav);
-      setCurrentPlan(planFromNav);
+      const p = normalizePlan(planFromNav);
+      setPlan(p);
+      setCurrentPlan(p);
     } else if (storedPlan?.meals?.length && !planFromNav) {
-      setPlan(storedPlan);
+      setPlan(normalizePlan(storedPlan));
     }
   }, [planFromNav, storedPlan, setCurrentPlan]);
 
-  if (!plan?.meals?.length) {
-    return (
-      <ScreenShell className="pb-32 flex flex-col items-center justify-center min-h-[60vh]">
-        <h1 className="text-[24px] text-foreground mb-2 font-semibold text-center">
-          No plan yet
-        </h1>
-        <p className="text-[15px] text-muted-foreground text-center max-w-xs mb-6">
-          Complete onboarding and build your first plan to see your week here.
-        </p>
-        <Button variant="melu" onClick={() => navigate("/onboarding")}>
-          Go to onboarding
-        </Button>
-      </ScreenShell>
-    );
+  const effectivePlan = planFromNav ?? storedPlan;
+  const shouldRedirectToHome = !effectivePlan?.meals?.length;
+
+  useLayoutEffect(() => {
+    if (shouldRedirectToHome) {
+      navigate("/home", { replace: true });
+    }
+  }, [shouldRedirectToHome, navigate]);
+
+  if (shouldRedirectToHome) {
+    return null;
   }
 
-  const n = plan.meals.length;
+  const planForUi = plan ?? normalizePlan(effectivePlan);
+
+  const n = planForUi.meals.length;
 
   const handleApprove = async () => {
     setApproveError(null);
-    if (!plan.id || String(plan.id).trim() === "") {
+    if (!planForUi.id || String(planForUi.id).trim() === "") {
       setApproveError("Missing plan id. Generate a new plan and try again.");
       return;
     }
     setApproving(true);
     try {
-      await approvePlan(String(plan.id).trim());
+      await approvePlan(String(planForUi.id).trim());
+      const approved = normalizePlan({ ...planForUi, status: "approved" });
+      setPlan(approved);
+      setCurrentPlan(approved);
       navigate("/home?approved=true");
     } catch (e) {
       setApproveError(e instanceof Error ? e.message : "Could not approve plan");
@@ -164,10 +167,10 @@ export function WeeklyPlanView() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-7 gap-3">
-        {plan.meals.map((meal, index) => (
+        {planForUi.meals.map((meal, index) => (
           <MealCard
-            key={`${plan.id}-${meal.day}-${index}`}
-            {...mealToCardProps(meal, plan.weekStart)}
+            key={`${planForUi.id}-${meal.day}-${index}`}
+            {...mealToCardProps(meal, planForUi.weekStart)}
           />
         ))}
       </div>

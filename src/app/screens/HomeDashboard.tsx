@@ -1,11 +1,11 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router";
 
 import { BottomNav } from "../components/BottomNav";
-import { MeluCard, ScreenShell, TopBar } from "../components/design-system";
+import { ScreenShell, TopBar } from "../components/design-system";
 import { cn } from "../components/ui/utils";
-import type { Meal, Plan } from "../lib/api";
-import { fetchMealsPreview } from "../lib/api";
+import type { Plan, PlanStatus } from "../lib/api";
+import { fetchCurrentWeekPlan, fetchMealsPreview } from "../lib/api";
 import { clearChefCardCache } from "../lib/chefCardCache";
 import {
   clearMealsPreviewCache,
@@ -15,32 +15,32 @@ import {
 import { supabase } from "../lib/supabase";
 import { useWeeklyPlanStore } from "../stores/weeklyPlanStore";
 
-const DAY_TO_ABBREV: Record<string, string> = {
-  monday: "MON",
-  tuesday: "TUE",
-  wednesday: "WED",
-  thursday: "THU",
-  friday: "FRI",
-  saturday: "SAT",
-  sunday: "SUN",
-};
+const WEEKDAY_NAMES = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+] as const;
 
-function dayToAbbrev(day: string): string {
-  const key = day.trim().toLowerCase();
-  return DAY_TO_ABBREV[key] ?? day.slice(0, 3).toUpperCase();
+function getWeekdayGreeting(): string {
+  return `Good ${WEEKDAY_NAMES[new Date().getDay()]}`;
 }
 
-function getGreeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
+function effectivePlanStatus(plan: Plan): PlanStatus {
+  return plan.status ?? "pending";
 }
 
-function mealSourceType(m: Meal): "staple" | "aspiration" | undefined {
-  const raw = (m as { source_type?: string }).source_type ?? m.sourceType;
-  if (raw === "staple" || raw === "aspiration") return raw;
-  return undefined;
+function greetingSubtitle(hasPlan: boolean, status: PlanStatus | null): string {
+  if (!hasPlan) {
+    return "Melu knows your family. Time to plan this week.";
+  }
+  if (status === "approved") {
+    return "This week's plan is set.";
+  }
+  return "You've got a draft plan waiting for approval.";
 }
 
 function firstNameFromSessionUser(user: {
@@ -88,103 +88,80 @@ function PillRow({
   );
 }
 
-function SourceTag({ kind }: { kind: "staple" | "aspiration" }) {
-  const label = kind === "aspiration" ? "Aspiration" : "Staple";
+/** State C — approved plan (active week). */
+function ThisWeekSummaryCard({ plan, onNavigatePlan }: { plan: Plan; onNavigatePlan: () => void }) {
+  const meals = plan.meals;
+  const shown = meals.slice(0, 3);
+  const rest = Math.max(0, meals.length - 3);
+
   return (
-    <span
-      className="shrink-0 ml-2 inline-block rounded-[10px] px-2 py-0.5 text-[10px] font-normal text-primary bg-[#EBF2EB]"
-    >
-      {label}
-    </span>
+    <div className="space-y-3">
+      <button
+        type="button"
+        onClick={onNavigatePlan}
+        className="w-full text-left rounded-2xl bg-card p-[18px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-border/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      >
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <span className="text-[13px] font-medium text-foreground">This week</span>
+          <span className="shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-[#EBF2EB] text-[#2D572C]">
+            Approved
+          </span>
+        </div>
+        <ul className="space-y-1.5 mb-1">
+          {shown.map((m, i) => (
+            <li key={`${m.day}-${m.name}-${i}`} className="text-[15px] text-foreground truncate">
+              {m.name}
+            </li>
+          ))}
+        </ul>
+        {rest > 0 ? (
+          <p className="text-[13px] text-muted-foreground">+{rest} more</p>
+        ) : null}
+        <p className="text-[13px] text-primary font-normal mt-3 text-right">View full plan →</p>
+      </button>
+    </div>
   );
 }
 
-const CALENDAR_DAY_ORDER = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-] as const;
-
-function WeekPlanCard({
-  plan,
-  onViewFullPlan,
-}: {
-  plan: Plan;
-  onViewFullPlan: () => void;
-}) {
-  const meals = plan.meals;
-  const dayNames = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
-  const todayName = dayNames[new Date().getDay()];
-  const todayIdx = CALENDAR_DAY_ORDER.indexOf(
-    todayName as (typeof CALENDAR_DAY_ORDER)[number],
-  );
+/** State B — draft plan, not yet approved. */
+function DraftWeekSummaryCard({ plan, onReview }: { plan: Plan; onReview: () => void }) {
+  const rows = plan.meals.slice(0, 5);
+  const rest = Math.max(0, plan.meals.length - 5);
 
   return (
-    <MeluCard>
-      {meals.map((meal, index) => {
-        const src = mealSourceType(meal);
-        const mealIdx = CALENDAR_DAY_ORDER.indexOf(
-          meal.day as (typeof CALENDAR_DAY_ORDER)[number],
-        );
-        const isPast =
-          mealIdx !== -1 && todayIdx !== -1 && mealIdx < todayIdx;
-        const isToday = meal.day === todayName;
-        return (
-          <div
-            key={`${meal.day}-${meal.name}-${index}`}
-            className={cn(
-              "rounded-lg",
-              isPast && "opacity-50",
-              isToday && "border-l-[3px] border-l-[#7C9E7A] bg-[#F0F5F0] pl-[13px]",
-            )}
-          >
-            <div className="flex items-center justify-between gap-2 py-2">
-              <span
-                className={cn(
-                  "text-[12px] font-normal shrink-0",
-                  isToday && "text-[#7C9E7A]",
-                  isPast && "text-[#B5B2AE]",
-                  !isToday && !isPast && "text-muted-foreground",
-                )}
-              >
-                {dayToAbbrev(meal.day)}
-              </span>
-              <div className="flex flex-1 min-w-0 items-center justify-end gap-1 flex-wrap">
-                <span className="text-[15px] text-foreground text-right font-normal">
-                  {meal.name}
-                </span>
-                {src === "aspiration" ? <SourceTag kind="aspiration" /> : null}
-                {src === "staple" ? <SourceTag kind="staple" /> : null}
-              </div>
-            </div>
-            {index < meals.length - 1 ? (
-              <div className="border-t border-border-subtle" />
-            ) : null}
-          </div>
-        );
-      })}
-      <div className="mt-3 text-right">
-        <button
-          type="button"
-          onClick={onViewFullPlan}
-          className="text-[13px] text-primary font-normal"
-        >
-          View full plan →
-        </button>
-      </div>
-    </MeluCard>
+    <div className="rounded-2xl bg-card p-[18px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-border/60 space-y-4">
+      <p className="text-[11px] font-semibold tracking-[0.08em] text-[#78716C]">READY TO REVIEW</p>
+      <ul className="space-y-1.5">
+        {rows.map((m, i) => (
+          <li key={`${m.day}-${m.name}-${i}`} className="text-[15px] text-foreground truncate">
+            {m.day} · {m.name}
+          </li>
+        ))}
+      </ul>
+      {rest > 0 ? (
+        <p className="text-[13px] text-muted-foreground">+{rest} more</p>
+      ) : null}
+      <button
+        type="button"
+        onClick={onReview}
+        className="w-full rounded-full bg-primary text-primary-foreground h-14 text-[16px] font-semibold"
+      >
+        Review and approve
+      </button>
+    </div>
+  );
+}
+
+function GroceryShortcutCard({ onNavigate }: { onNavigate: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onNavigate}
+      className="w-full rounded-2xl bg-card p-[18px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-border/60 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+    >
+      <span className="text-[15px] font-medium text-foreground">View grocery list</span>
+      <p className="text-[13px] text-muted-foreground mt-1">Ingredients for this week →</p>
+    </button>
   );
 }
 
@@ -259,7 +236,9 @@ export function HomeDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
   const plan = useWeeklyPlanStore((s) => s.currentPlan);
+  const setCurrentPlan = useWeeklyPlanStore((s) => s.setCurrentPlan);
   const hasPlan = Boolean(plan?.meals?.length);
+  const planStatus = plan && hasPlan ? effectivePlanStatus(plan) : null;
 
   const [approvalToastPhase, setApprovalToastPhase] = useState<ApprovalToastPhase>("idle");
 
@@ -297,6 +276,22 @@ export function HomeDashboard() {
     const t = globalThis.setTimeout(() => setApprovalToastPhase("idle"), 300);
     return () => globalThis.clearTimeout(t);
   }, [approvalToastPhase]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const p = await fetchCurrentWeekPlan();
+        if (cancelled) return;
+        setCurrentPlan(p);
+      } catch {
+        // Keep existing store on fetch failure (offline / network).
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [setCurrentPlan]);
 
   useEffect(() => {
     let cancelled = false;
@@ -355,12 +350,10 @@ export function HomeDashboard() {
   const greeting = (
     <div className="mt-6 mb-6 md:mt-0">
       <h1 className="text-[18px] text-foreground mb-1 font-semibold">
-        {getGreeting()}, {firstName}.
+        {getWeekdayGreeting()}, {firstName}.
       </h1>
       <p className="text-[15px] text-muted-foreground font-normal">
-        {hasPlan
-          ? "This week's plan is set."
-          : "Melu knows your family. Time to plan this week."}
+        {greetingSubtitle(hasPlan, planStatus)}
       </p>
     </div>
   );
@@ -371,31 +364,50 @@ export function HomeDashboard() {
     </div>
   );
 
-  const thisWeekCard = hasPlan && plan ? (
-    <div>
-      {weekSectionLabel}
-      <WeekPlanCard plan={plan} onViewFullPlan={() => navigate("/plan")} />
-    </div>
-  ) : (
+  const goToPlan = () => navigate("/plan");
+
+  const stateAEmptyWeek = (
     <div>
       {weekSectionLabel}
       <div className="rounded-2xl bg-card p-[18px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-border/60">
-        <p className="text-[15px] text-muted-foreground mb-4">No plan yet this week.</p>
+        <p className="text-[15px] text-[#78716C] mb-4">No plan yet this week.</p>
         <button
           type="button"
           onClick={() => navigate("/weekly-checkin")}
-          className="w-full rounded-full bg-primary text-primary-foreground h-14 text-[17px] font-semibold"
+          className="w-full rounded-full bg-primary text-primary-foreground h-14 text-[16px] font-semibold"
         >
           Plan this week&apos;s dinners
         </button>
-        <p className="text-center text-[12px] text-muted-foreground mt-2">Takes about 60 seconds.</p>
+        <p className="text-center text-[12px] text-[#78716C] mt-3">Takes about 60 seconds.</p>
       </div>
     </div>
   );
 
+  let thisWeekCard: ReactNode;
+  if (!hasPlan || !plan) {
+    thisWeekCard = stateAEmptyWeek;
+  } else if (effectivePlanStatus(plan) === "approved") {
+    thisWeekCard = (
+      <div>
+        {weekSectionLabel}
+        <ThisWeekSummaryCard plan={plan} onNavigatePlan={goToPlan} />
+        <div className="mt-3">
+          <GroceryShortcutCard onNavigate={() => navigate("/grocery")} />
+        </div>
+      </div>
+    );
+  } else {
+    thisWeekCard = (
+      <div>
+        {weekSectionLabel}
+        <DraftWeekSummaryCard plan={plan} onReview={goToPlan} />
+      </div>
+    );
+  }
+
   const nudge = hasPlan ? (
     <p className="text-[13px] text-muted-foreground font-normal text-center md:text-left">
-      Next plan generates Sunday.
+      Next plan drops Sunday.
     </p>
   ) : null;
 

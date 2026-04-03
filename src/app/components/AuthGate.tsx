@@ -130,6 +130,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const hideSessionHeader =
     location.pathname === "/onboarding/loading" ||
     location.pathname === "/home" ||
+    location.pathname === "/plan" ||
     location.pathname === "/weekly-checkin" ||
     location.pathname === "/weekly-checkin/context";
 
